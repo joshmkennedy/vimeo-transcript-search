@@ -6,4 +6,5 @@ parameters:
 	level: 6
 
 	paths:
-		- /Users/joshkennedy/work/jp/wp-content/plugins/jp
+		- /Users/joshkennedy/work/jp/wp-content/plugins/vimeo-transcript-search/src/
+		- vimeo-transcript-search.php

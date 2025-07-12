@@ -13,3 +13,11 @@
  */
 
 // Your code starts here.
+require_once 'vendor/autoload.php';
+
+use Jk\Vts\Plugin;
+
+$plugin = new Plugin(
+	__FILE__
+);
+$plugin->run();
