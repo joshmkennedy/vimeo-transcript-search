@@ -6,22 +6,113 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630
 {
+    public static $files = array (
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
+        '23f09fe3194f8c2f70923f90d6702129' => __DIR__ . '/..' . '/illuminate/collections/functions.php',
+        '60799491728b879e74601d83e38b2cad' => __DIR__ . '/..' . '/illuminate/collections/helpers.php',
+        '5982dcd63902e954cdf4832ac3994bef' => __DIR__ . '/..' . '/turso/libsql/src/functions.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
+        'P' => 
+        array (
+            'Psr\\SimpleCache\\' => 16,
+            'Psr\\Http\\Message\\' => 17,
+            'Psr\\Http\\Client\\' => 16,
+            'Psr\\Container\\' => 14,
+        ),
+        'L' => 
+        array (
+            'Libsql\\Tests\\' => 13,
+            'Libsql\\' => 7,
+        ),
         'J' => 
         array (
             'Jk\\Vts\\' => 7,
         ),
+        'I' => 
+        array (
+            'Illuminate\\Support\\' => 19,
+            'Illuminate\\Contracts\\' => 21,
+        ),
+        'G' => 
+        array (
+            'GuzzleHttp\\Psr7\\' => 16,
+            'GuzzleHttp\\Promise\\' => 19,
+            'GuzzleHttp\\' => 11,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Psr\\SimpleCache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
+        ),
+        'Psr\\Http\\Message\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'Psr\\Http\\Client\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-client/src',
+        ),
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'Libsql\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/turso/libsql/tests',
+        ),
+        'Libsql\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/turso/libsql/src',
+        ),
         'Jk\\Vts\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Illuminate\\Support\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/collections',
+            1 => __DIR__ . '/..' . '/illuminate/macroable',
+            2 => __DIR__ . '/..' . '/illuminate/conditionable',
+        ),
+        'Illuminate\\Contracts\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/illuminate/contracts',
+        ),
+        'GuzzleHttp\\Psr7\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
+        ),
+        'GuzzleHttp\\Promise\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/guzzlehttp/promises/src',
+        ),
+        'GuzzleHttp\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
         ),
     );
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Libsql\\Blob' => __DIR__ . '/..' . '/turso/libsql/src/Blob.php',
+        'Libsql\\CharBox' => __DIR__ . '/..' . '/turso/libsql/src/CharBox.php',
+        'Libsql\\Connection' => __DIR__ . '/..' . '/turso/libsql/src/Connection.php',
+        'Libsql\\Database' => __DIR__ . '/..' . '/turso/libsql/src/Database.php',
+        'Libsql\\LibsqlException' => __DIR__ . '/..' . '/turso/libsql/src/LibsqlException.php',
+        'Libsql\\PDO' => __DIR__ . '/..' . '/turso/libsql/src/PDO.php',
+        'Libsql\\PDOStatement' => __DIR__ . '/..' . '/turso/libsql/src/PDOStatement.php',
+        'Libsql\\Prepareable' => __DIR__ . '/..' . '/turso/libsql/src/Prepareable.php',
+        'Libsql\\Row' => __DIR__ . '/..' . '/turso/libsql/src/Row.php',
+        'Libsql\\Rows' => __DIR__ . '/..' . '/turso/libsql/src/Rows.php',
+        'Libsql\\Statement' => __DIR__ . '/..' . '/turso/libsql/src/Statement.php',
+        'Libsql\\Transaction' => __DIR__ . '/..' . '/turso/libsql/src/Transaction.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

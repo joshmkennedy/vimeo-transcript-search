@@ -11,5 +11,9 @@
             "email": "jkennedy@ksensetech.com"
         }
     ],
-    "require": {}
+    "require": {
+        "turso/libsql": "^0.2.5",
+        "illuminate/collections": "^12.20",
+        "guzzlehttp/guzzle": "^7.9"
+    }
 }
