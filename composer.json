@@ -1,0 +1,15 @@
+{
+    "name": "jk/vts",
+    "autoload": {
+        "psr-4": {
+            "Jk\\Vts\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "josh kennedy",
+            "email": "jkennedy@ksensetech.com"
+        }
+    ],
+    "require": {}
+}

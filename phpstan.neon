@@ -1,0 +1,9 @@
+parameters:
+	scanFiles:
+		- /Users/joshkennedy/.config/php-stubs/wp-stubs.php
+		- stubs
+
+	level: 6
+
+	paths:
+		- /Users/joshkennedy/work/jp/wp-content/plugins/jp
