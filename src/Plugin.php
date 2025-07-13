@@ -2,6 +2,10 @@
 
 namespace Jk\Vts;
 
+
+use Jk\Vts\Services\Vite;
+
+/** @package Jk\Vts */
 class Plugin {
 	public string $basename;
 	public string $dir;
@@ -25,6 +29,9 @@ class Plugin {
 		if ($this->loaded) {
 			return;
 		}
+
+		//ENSURE EMBED DB
+
 		$this->addHooks();
 		$this->loaded = true;
 	}
@@ -38,14 +45,60 @@ class Plugin {
 				'register'
 			]
 		);
+		add_action(
+			'rest_api_init',
+			[
+				new \Jk\Vts\Endpoint\ListTranscribedVideos(),
+				'register'
+			]
+		);
+		add_action(
+			'rest_api_init',
+			[
+				new \Jk\Vts\Endpoint\SearchTranscriptionEmbeds(),
+				'register'
+			]
+		);
 
 		// ADMIN
 		add_action(
 			'admin_menu',
 			[
-				new \Jk\Vts\Admin\AdminPage(),
+				new \Jk\Vts\Admin\AdminPage($this->path, $this->url),
 				'register'
 			]
+		);
+		// assets for admin
+
+		add_action(
+			'admin_enqueue_scripts',
+			[
+				new \Jk\Vts\Admin\AdminPage($this->path, $this->url),
+				'enqueueAsset'
+			]
+		);
+
+		// ASSETS FOR VITE
+		add_action(
+			'admin_enqueue_scripts',
+			function () {
+?>
+			<script type="module">
+				import RefreshRuntime from 'http://localhost:1234/@react-refresh'
+				RefreshRuntime.injectIntoGlobalHook(window)
+				window.$RefreshReg$ = () => {}
+				window.$RefreshSig$ = () => (type) => type
+				window.__vite_plugin_react_preamble_installed__ = true
+			</script>
+<?php
+			}
+		);
+
+		add_filter(
+			'script_loader_tag',
+			[new Vite($this->url, $this->path), 'use_esm_modules'],
+			10,
+			3
 		);
 	}
 }
