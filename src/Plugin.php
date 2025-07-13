@@ -81,19 +81,8 @@ class Plugin {
 		// ASSETS FOR VITE
 		add_action(
 			'admin_enqueue_scripts',
-			function () {
-?>
-			<script type="module">
-				import RefreshRuntime from 'http://localhost:1234/@react-refresh'
-				RefreshRuntime.injectIntoGlobalHook(window)
-				window.$RefreshReg$ = () => {}
-				window.$RefreshSig$ = () => (type) => type
-				window.__vite_plugin_react_preamble_installed__ = true
-			</script>
-<?php
-			}
+			[new Vite($this->url, $this->path), 'viteRuntime']
 		);
-
 		add_filter(
 			'script_loader_tag',
 			[new Vite($this->url, $this->path), 'use_esm_modules'],

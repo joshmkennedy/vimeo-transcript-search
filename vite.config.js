@@ -28,6 +28,7 @@ export default defineConfig({
 
   ],
   build: {
+	manifest: true,
     outDir: 'assets/build',
     rollupOptions: {
       input: {

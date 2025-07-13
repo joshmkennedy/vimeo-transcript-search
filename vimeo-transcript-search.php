@@ -14,7 +14,6 @@
 
 // Your code starts here.
 
-
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Jk\Vts\Plugin;
