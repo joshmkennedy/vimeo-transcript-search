@@ -13,6 +13,7 @@ class TranscriptionProcessor {
 		$title = $input['title'];
 		$vimeoId = $input['videoId'];
 		$collection = new Collection();
+        error_log("preparing transcript");
 		foreach ($input['transcript'] as $i => $chunk) {
 			// 1. Fix timestamps
 			list($start_time, $end_time) = $this->normalizeTimestamp(
@@ -23,6 +24,7 @@ class TranscriptionProcessor {
 			// 2. Create Embedding
 			list($error, $embedding) = $this->embedder->createEmbed($chunk['content']);
 			if ($error) {
+                error_log($error);
 				throw new \Exception($error);
 			}
 
@@ -36,6 +38,7 @@ class TranscriptionProcessor {
 				embedding: $embedding,
 			));
 		}
+        error_log("prepared transcript");
 		return $collection;
 	}
 

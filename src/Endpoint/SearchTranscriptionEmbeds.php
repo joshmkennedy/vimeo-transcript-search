@@ -61,8 +61,16 @@ class SearchTranscriptionEmbeds {
 				$result['score'] = floor(((2 - $result["relative_distance"]) / 2) * 100);
 				unset($result['relative_distance']);
 				$result['iframeSrcUrl'] = "https://player.vimeo.com/video/" . $result['vimeoId'];
+                $result['thumbnail'] = $this->getVimeoThumbnail($result['vimeoId']);
 				return $result;
 			})
 			->toArray();
 	}
+
+    private function getVimeoThumbnail(string $vimeoId): ?string {
+        if(!class_exists('\JP\VimeoUtils')) {
+            return null;
+        }
+        return \JP\VimeoUtils::getThumb($vimeoId);
+    }
 }

@@ -64,7 +64,13 @@ class Vite {
 	private function enqueue_js(string $script, $deps): void {
 		$handle = sprintf("module/%s/%s", $this->module_name, $script);
 		wp_register_script($handle, $this->asset_url($script), $deps,  $this->in_dev);
-		wp_enqueue_script($handle);
+        wp_enqueue_script($handle);
+
+        // please remove this and put elsewhere so baddd
+        wp_localize_script($handle, "vtsAdmin", [
+            'nonce' => wp_create_nonce("wp_rest"),
+            'apiUrl'=> get_rest_url(null, "/vts/v1"),
+        ]);
 	}
 
 	private function imports(string $script): array {
