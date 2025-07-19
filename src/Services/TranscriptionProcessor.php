@@ -6,60 +6,73 @@ use Illuminate\Support\Collection;
 use Jk\Vts\DTO\VimeoTranscriptionChunkWithEmbed;
 
 class TranscriptionProcessor {
-	public function __construct(private Embed $embedder) {
-	}
+    public function __construct(private Embed $embedder) {
+    }
 
-	public function prepareTranscript(array $input) {
-		$title = $input['title'];
-		$vimeoId = $input['videoId'];
-		$collection = new Collection();
+    public function prepareTranscript(array $input) {
+        $title = $input['title'];
+        $vimeoId = $input['videoId'];
+        $collection = new Collection();
         error_log("preparing transcript");
-		foreach ($input['transcript'] as $i => $chunk) {
-			// 1. Fix timestamps
-			list($start_time, $end_time) = $this->normalizeTimestamp(
-				$chunk["ts"],
-				$i < count($input['transcript']) ? $input['transcript'][$i + 1]["ts"] : null
-			);
+        foreach ($input['transcript'] as $i => $chunk) {
+            // 1. Fix timestamps
+            if (array_key_exists('ts', $chunk)) {
+                list($start_time, $end_time) = $this->extractTimestamps($chunk, $i, $input['transcript']);
+            } else {
+                // support format from ('automatic-speech-recognition', 'Xenova/whisper-tiny.en')
+                $start_time = (int) $chunk['timestamps'][0];
+                $end_time = (int) $chunk['timestamps'][1];
+            }
 
-			// 2. Create Embedding
-			list($error, $embedding) = $this->embedder->createEmbed($chunk['content']);
-			if ($error) {
+            // 2. Create Embedding
+            list($error, $embedding) = array_key_exists('content', $chunk)
+                // supports the old format
+                ? $this->embedder->createEmbed($chunk['content'])
+                // supports the ('automatic-speech-recognition', 'Xenova/whisper-tiny.en')
+                : $this->embedder->createEmbed($chunk['text']);
+            if ($error) {
                 error_log($error);
-				throw new \Exception($error);
-			}
+                throw new \Exception($error);
+            }
 
-			// 3. Collect prepared data
-			$collection->push(new VimeoTranscriptionChunkWithEmbed(
-				title: $title,
-				vimeoId: $vimeoId,
-				content: $chunk['content'],
-				start_time: $start_time,
-				end_time: $end_time,
-				embedding: $embedding,
-			));
-		}
+            error_log("created embedding");
+
+            // 3. Collect prepared data
+            $collection->push(new VimeoTranscriptionChunkWithEmbed(
+                title: $title,
+                vimeoId: $vimeoId,
+                content: array_key_exists('content', $chunk) ? $chunk['content'] : $chunk['text'],
+                start_time: $start_time,
+                end_time: $end_time,
+                embedding: $embedding,
+            ));
+        }
         error_log("prepared transcript");
-		return $collection;
-	}
+        return $collection;
+    }
 
-	private function normalizeTimestamp(string $start, ?string $end): array {
-		$times = [
-			$this->timestampToSeconds($start),
-		];
-		if ($end) {
-			$times[] = $this->timestampToSeconds($end);
-		}
-		return $times;
-	}
+    /**
+     * @deprecated this supports the old format
+     **/
+    public function extractTimestamps(array $chunk, $index, $chunks): array {
+        $isLastChunk = $index === count($chunks) - 1;
 
-	protected function timestampToSeconds(string $timestamp): int {
-		if (str_contains($timestamp, ':')) {
-			$parts = explode(':', $timestamp);
-			$minutes = (int) ($parts[0] ?? 0);
-			$seconds = (int) ($parts[1] ?? 0);
-			return ($minutes * 60) + $seconds;
-		} else {
-			return (int) $timestamp;
-		}
-	}
+        $start_time = $this->timestampToSeconds($chunk['ts']);
+        $end_time = $isLastChunk ? null : $this->timestampToSeconds(
+            $chunk[$index + 1]['ts'],
+        );
+
+        return [$start_time, $end_time];
+    }
+
+    protected function timestampToSeconds(string $timestamp): int {
+        if (str_contains($timestamp, ':')) {
+            $parts = explode(':', $timestamp);
+            $minutes = (int) ($parts[0] ?? 0);
+            $seconds = (int) ($parts[1] ?? 0);
+            return ($minutes * 60) + $seconds;
+        } else {
+            return (int) $timestamp;
+        }
+    }
 }

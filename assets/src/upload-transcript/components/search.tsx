@@ -88,6 +88,7 @@ function SearchForm({ onSubmit }: { onSubmit: (data: z.infer<typeof formSchema>)
           <FormItem className="w-full flex-1 ">
             <FormLabel className="text-lg">What would you like to find</FormLabel>
             <FormMessage />
+            <FormDescription className="my-1 text-xs">Search transcripts for clips</FormDescription>
             <FormControl>
               <Input placeholder="Search transcripts" className="w-full" {...field} />
             </FormControl>

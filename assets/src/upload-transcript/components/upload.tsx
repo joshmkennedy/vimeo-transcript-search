@@ -33,8 +33,8 @@ export function Upload() {
           url: data.vimeoUrl,
         });
 
-        const title = await player.getVideoTitle()
-        const videoId = await player.getVideoId()
+        const title = await player.getVideoTitle().catch(()=>"private video");
+        const videoId = await player.getVideoId().catch(()=> /https:\/\/vimeo.com\/(\d+)/.exec(data.vimeoUrl)?.[1]);
 
         player.destroy();
         document.body.removeChild(div)
