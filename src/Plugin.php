@@ -72,8 +72,12 @@ class Plugin {
                 'register'
             ]
         );
-        // assets for admin
+        add_action('admin_init', [
+            new \Jk\Vts\Admin\Settings(),
+            'register'
+        ]);
 
+        // assets for admin
         add_action(
             'admin_enqueue_scripts',
             [

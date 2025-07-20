@@ -19,7 +19,12 @@ class UploadTranscript {
 	public function __construct() {
 		// THESE NEED TO BE CHANGEABLE
 		$this->embbeder = new Embed();
+        try{
 		$this->db = Db::initLocal();
+        } catch(\Exception $e) {
+            error_log($e->getMessage());
+            return;
+        }
 
 		$this->processor = new TranscriptionProcessor($this->embbeder);
 	}

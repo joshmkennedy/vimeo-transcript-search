@@ -20,8 +20,8 @@ class TranscriptionProcessor {
                 list($start_time, $end_time) = $this->extractTimestamps($chunk, $i, $input['transcript']);
             } else {
                 // support format from ('automatic-speech-recognition', 'Xenova/whisper-tiny.en')
-                $start_time = (int) $chunk['timestamps'][0];
-                $end_time = (int) $chunk['timestamps'][1];
+                $start_time = (int) $chunk['timestamp'][0];
+                $end_time = (int) $chunk['timestamp'][1];
             }
 
             // 2. Create Embedding

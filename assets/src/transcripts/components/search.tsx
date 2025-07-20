@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import React from "react"
 import { useForm } from "react-hook-form"
 import z from "zod"
+import toast from "react-hot-toast";
 
 const formSchema = z.object({
   query: z.string(),
@@ -24,23 +25,26 @@ type SearchResultType = {
 export function Search() {
   const [results, setResults] = React.useState<SearchResultType[]>([]);
   const [selectedResult, setSelectedResult] = React.useState<undefined | SearchResultType>(undefined);
-  const [isLoading, setIsLoading] = React.useState(false);
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    //@ts-ignore - its there I just dont care to type it
-    const results = await fetch(`${window.vtsAdmin.apiUrl}/search-transcription-embeds?query=${encodeURIComponent(data.query)}`, {
-      method: "GET",
-      credentials: "include",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-        //@ts-ignore - its there I just dont care to type it
-        "X-WP-Nonce": window.vtsAdmin.nonce,
-      },
-    })
-      .then(res => res.json())
-      .finally(() => setIsLoading(false))
-
+    const results = await toast.promise(async () => {
+      //@ts-ignore - its there I just dont care to type it
+      const results = await fetch(`${window.vtsAdmin.apiUrl}/search-transcription-embeds?query=${encodeURIComponent(data.query)}`, {
+        method: "GET",
+        credentials: "include",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          //@ts-ignore - its there I just dont care to type it
+          "X-WP-Nonce": window.vtsAdmin.nonce,
+        },
+      })
+        .then(res => res.json())
+      return results as SearchResultType[];
+    }, {
+      loading: "Searching...",
+      error: (err) => `Error searching, ${err}`,
+      success: "Successfully searched",
+    });
     setResults(results)
   }
 
@@ -146,9 +150,16 @@ function SearchResult({
 }
 
 function formatTime(time: number) {
-  const minutes = Math.floor(time / 60);
+  let timestamp = '';
+  const hours = Math.floor(time / 3600);
+  if (hours > 0) {
+    timestamp += `${hours}:`;
+  }
+  const minutes = Math.floor(time / 60) % 60;
+  timestamp += `${minutes < 10 ? "0" + minutes : minutes}:`;
   const seconds = Math.floor(time % 60);
-  return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+  timestamp += `${seconds < 10 ? "0" + seconds : seconds}`;
+  return timestamp;
 }
 
 
@@ -210,7 +221,7 @@ function PageListWithVideo({ videoId, timeStart }: { videoId: string | undefined
 
       return <li key={url.toString()} className="flex gap-2 justify-between items-baseline bg-neutral-100 p-2 rounded-md overflow-hidden">
         <Button onClick={async () => { await navigator.clipboard.writeText(url.toString()) }}>Copy</Button>
-        <a className="text-base text-blue-900 hover:underline" href={url.toString()}>{url.toString()}</a>
+        <a className="text-base text-blue-900 hover:underline" target="_blank" href={url.toString()}>{url.toString()}</a>
       </li>
     })}
   </ul>

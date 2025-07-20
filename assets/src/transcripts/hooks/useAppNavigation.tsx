@@ -1,5 +1,4 @@
 import React, { useState, useContext } from "react";
-import type { JSX } from "react/jsx-runtime";
 
 interface AppNavigationContextType {
   currentPage: string;
@@ -22,11 +21,17 @@ interface AppNavigationProviderProps {
 
 export function AppNavigationProvider({ children }: AppNavigationProviderProps) {
   const [currentPage, setCurrentPage] = useState<string>("upload");
-  const navigate = (path: string) => setCurrentPage(path);
+  const navigate = (path: string) =>{
+    setCurrentPage(path)
+    window.location.hash = path;
+  };
 
   React.useEffect(() => {
-	  console.log("navigate", currentPage);
-  },[currentPage])
+    const hash = window.location.hash.replace("#", "");
+    if (hash) {
+      navigate(hash);
+    }
+  }, []);
 
   const value = { currentPage, navigate };
 

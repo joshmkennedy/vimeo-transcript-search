@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630
+class ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -22,6 +22,10 @@ class ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Container\\' => 14,
+        ),
+        'O' => 
+        array (
+            'Orhanerday\\OpenAi\\' => 18,
         ),
         'L' => 
         array (
@@ -62,6 +66,10 @@ class ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630
         'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'Orhanerday\\OpenAi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/orhanerday/open-ai/src',
         ),
         'Libsql\\Tests\\' => 
         array (
@@ -118,9 +126,9 @@ class ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit0f5b4aa633281b0895c5fb50249a2630::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f::$classMap;
 
         }, null, ClassLoader::class);
     }

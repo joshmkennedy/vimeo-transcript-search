@@ -1,2 +1,2 @@
-import "./upload-transcript/app";
+import "./transcripts/app";
 import "./css/main.css";

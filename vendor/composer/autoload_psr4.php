@@ -10,6 +10,7 @@ return array(
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-factory/src', $vendorDir . '/psr/http-message/src'),
     'Psr\\Http\\Client\\' => array($vendorDir . '/psr/http-client/src'),
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
+    'Orhanerday\\OpenAi\\' => array($vendorDir . '/orhanerday/open-ai/src'),
     'Libsql\\Tests\\' => array($vendorDir . '/turso/libsql/tests'),
     'Libsql\\' => array($vendorDir . '/turso/libsql/src'),
     'Jk\\Vts\\' => array($baseDir . '/src'),
