@@ -32,6 +32,7 @@ class PagesWithVideo {
     }
 
     public function get(\WP_REST_Request $request) {
+
         $videoId = $request->get_param('videoId');
         if (empty($videoId)) {
             return rest_ensure_response(new \WP_Error('invalid_video', 'Video is required', array('status' => 400)));

@@ -20,7 +20,10 @@ class SearchTranscriptionEmbeds {
     protected ReRanker $reranker;
 
     public function __construct() {
-        $this->db = Db::initLocal();
+        $db = Db::initLocal();
+        if ($db) {
+            $this->db = $db;
+        }
         $this->embedder = new Embed();
         $this->chat = new Chat();
         $this->reranker = new ReRanker();
@@ -49,6 +52,9 @@ class SearchTranscriptionEmbeds {
     }
 
     public function get(\WP_REST_Request $request) {
+        if (!$this->db) {
+            return rest_ensure_response(new \WP_Error('invalid_db', 'DB is not initialized', array('status' => 400)));
+        }
         $query = $request->get_param('query');
         if (empty($query)) {
             return rest_ensure_response(new \WP_Error('invalid_query', 'Query is required', array('status' => 400)));
