@@ -21,7 +21,7 @@ class Embed {
         );
     }
 
-    public function createEmbed(string $text, bool $useOpenAi = false): array {
+    public function createEmbed(string $text, bool $useOpenAi = true): array {
         if ($useOpenAi) {
             return $this->createEmbed__openai($text);
         } else {
