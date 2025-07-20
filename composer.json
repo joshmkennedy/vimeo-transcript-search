@@ -12,7 +12,6 @@
         }
     ],
     "require": {
-        "turso/libsql": "^0.2.5",
         "illuminate/collections": "^12.20",
         "guzzlehttp/guzzle": "^7.9",
         "orhanerday/open-ai": "^5.3"

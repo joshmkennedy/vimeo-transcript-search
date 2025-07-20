@@ -11,7 +11,7 @@ class SearchTranscriptionEmbeds {
     protected string $namespace = 'vts/v1';
     protected string $route = 'search-transcription-embeds';
 
-    const RERANK = false;
+    const RERANK = true;
 
     // TODO: chnage these
     protected Db $db;
@@ -61,11 +61,6 @@ class SearchTranscriptionEmbeds {
 
         $foundChunks = $this->db->search($embeddedQuery);
 
-        error_log(print_r(
-            array_map(fn($ch) => $ch['title'], $foundChunks),
-            true
-        ));
-
         if (self::RERANK) {
             $sortedDocs = $this->reranker->rerank(
                 $query,
@@ -84,11 +79,6 @@ class SearchTranscriptionEmbeds {
             })->toArray();
         }
 
-        error_log(print_r(
-            array_map(fn($ch) => $ch['title'], $foundChunks),
-            true,
-        ));
-
         $aiCuratedChunks = $this->chat->queryChunks(
             $query,
             collect($aiCuratedChunks ?? $foundChunks)->map(function ($chunk) {
@@ -97,8 +87,6 @@ class SearchTranscriptionEmbeds {
             })->toArray()
         );
 
-        error_log("AI Results\n");
-        error_log(print_r(array_map(fn($chunk) => $chunk->title, $aiCuratedChunks), true));
 
         $restoredChunks = collect($foundChunks)->filter(function ($chunk) use ($aiCuratedChunks) {
             $chunksWithSameVimeoId = array_values(array_filter($aiCuratedChunks, function ($aiChunk) use ($chunk) {

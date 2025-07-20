@@ -95,7 +95,6 @@ class UploadTranscript {
             error_log("count transcript < 1");
 			return new \WP_Error('invalid_transcript', 'Transcript should have at least one item', array('status' => 400));
 		}
-        error_log("worrrrrrrrrrrrrrrrrrrks");
 	}
 
 }

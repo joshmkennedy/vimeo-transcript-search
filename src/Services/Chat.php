@@ -31,7 +31,6 @@ class Chat {
     }
 
     public function queryChunks__openai(string $query, array $chunks): array {
-        error_log(print_r($chunks[0], true));
         try {
             $json = $this->openai->chat([
                 'model' => 'gpt-4-turbo',
@@ -43,8 +42,6 @@ class Chat {
                 'max_tokens' => 1000,
             ]);
             $results = json_decode($json);
-            error_log("OPEN AI RESPONSE\n");
-            error_log(print_r($results, true));
 
             if (property_exists($results, 'error')) {
                 throw new \RuntimeException($results->error->message);
@@ -80,7 +77,6 @@ class Chat {
             if (property_exists($body, 'error')) {
                 throw new \RuntimeException($body->error->message);
             }
-            error_log(print_r($body, true));
             die;
             return $body->data->choices[0]->message->content;
         } catch (\Exception $e) {

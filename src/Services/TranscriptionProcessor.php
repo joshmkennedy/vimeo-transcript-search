@@ -13,7 +13,6 @@ class TranscriptionProcessor {
         $title = $input['title'];
         $vimeoId = $input['videoId'];
         $collection = new Collection();
-        error_log("preparing transcript");
         foreach ($input['transcript'] as $i => $chunk) {
             // 1. Fix timestamps
             if (array_key_exists('ts', $chunk)) {

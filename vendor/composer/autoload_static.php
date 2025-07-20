@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f
+class ComposerStaticInita01752c211ce755859a794faa5a12d59
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -12,7 +12,6 @@ class ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '23f09fe3194f8c2f70923f90d6702129' => __DIR__ . '/..' . '/illuminate/collections/functions.php',
         '60799491728b879e74601d83e38b2cad' => __DIR__ . '/..' . '/illuminate/collections/helpers.php',
-        '5982dcd63902e954cdf4832ac3994bef' => __DIR__ . '/..' . '/turso/libsql/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -26,11 +25,6 @@ class ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f
         'O' => 
         array (
             'Orhanerday\\OpenAi\\' => 18,
-        ),
-        'L' => 
-        array (
-            'Libsql\\Tests\\' => 13,
-            'Libsql\\' => 7,
         ),
         'J' => 
         array (
@@ -71,14 +65,6 @@ class ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f
         array (
             0 => __DIR__ . '/..' . '/orhanerday/open-ai/src',
         ),
-        'Libsql\\Tests\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/turso/libsql/tests',
-        ),
-        'Libsql\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/turso/libsql/src',
-        ),
         'Jk\\Vts\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
@@ -109,26 +95,14 @@ class ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Libsql\\Blob' => __DIR__ . '/..' . '/turso/libsql/src/Blob.php',
-        'Libsql\\CharBox' => __DIR__ . '/..' . '/turso/libsql/src/CharBox.php',
-        'Libsql\\Connection' => __DIR__ . '/..' . '/turso/libsql/src/Connection.php',
-        'Libsql\\Database' => __DIR__ . '/..' . '/turso/libsql/src/Database.php',
-        'Libsql\\LibsqlException' => __DIR__ . '/..' . '/turso/libsql/src/LibsqlException.php',
-        'Libsql\\PDO' => __DIR__ . '/..' . '/turso/libsql/src/PDO.php',
-        'Libsql\\PDOStatement' => __DIR__ . '/..' . '/turso/libsql/src/PDOStatement.php',
-        'Libsql\\Prepareable' => __DIR__ . '/..' . '/turso/libsql/src/Prepareable.php',
-        'Libsql\\Row' => __DIR__ . '/..' . '/turso/libsql/src/Row.php',
-        'Libsql\\Rows' => __DIR__ . '/..' . '/turso/libsql/src/Rows.php',
-        'Libsql\\Statement' => __DIR__ . '/..' . '/turso/libsql/src/Statement.php',
-        'Libsql\\Transaction' => __DIR__ . '/..' . '/turso/libsql/src/Transaction.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit106323457ec97cc0a0c8afeaa7d2878f::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInita01752c211ce755859a794faa5a12d59::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInita01752c211ce755859a794faa5a12d59::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInita01752c211ce755859a794faa5a12d59::$classMap;
 
         }, null, ClassLoader::class);
     }
