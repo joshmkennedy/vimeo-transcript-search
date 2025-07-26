@@ -46,7 +46,7 @@ class TranscriptionProcessor {
                 embedding: $embedding,
             ));
         }
-        error_log("prepared transcript");
+        error_log("prepared transcript ". $title);
         return $collection;
     }
 
@@ -58,13 +58,14 @@ class TranscriptionProcessor {
 
         $start_time = $this->timestampToSeconds($chunk['ts']);
         $end_time = $isLastChunk ? null : $this->timestampToSeconds(
-            $chunk[$index + 1]['ts'],
+            $chunk[$index + 1]['ts'] ?? "",
         );
 
         return [$start_time, $end_time];
     }
 
-    protected function timestampToSeconds(string $timestamp): int {
+    protected function timestampToSeconds(?string $timestamp): int|null {
+        if (!$timestamp) return null;
         if (str_contains($timestamp, ':')) {
             $parts = explode(':', $timestamp);
             $minutes = (int) ($parts[0] ?? 0);
