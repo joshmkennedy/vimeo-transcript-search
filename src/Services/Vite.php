@@ -119,7 +119,7 @@ class Vite {
      * @return string
      */
     public function use_esm_modules(string $tag, string $handle, string $src): string {
-        if (false !== stripos($handle, 'module')) {
+        if (false !== stripos($handle, $this->module_name)) {
             $str = "type='module'";
             $str .= $this->in_dev ? ' crossorigin' : '';
             $tag = str_replace("type='text/javascript'", $str, $tag);
