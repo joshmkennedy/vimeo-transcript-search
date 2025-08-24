@@ -20,7 +20,7 @@ interface AppNavigationProviderProps {
 }
 
 export function AppNavigationProvider({ children }: AppNavigationProviderProps) {
-  const [currentPage, setCurrentPage] = useState<string>("upload");
+  const [currentPage, setCurrentPage] = useState<string>("viewVideos");
   const navigate = (path: string) =>{
     setCurrentPage(path)
     window.location.hash = path;

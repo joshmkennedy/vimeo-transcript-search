@@ -149,7 +149,7 @@ function SearchResult({
   </div>
 }
 
-function formatTime(time: number) {
+export function formatTime(time: number) {
   let timestamp = '';
   const hours = Math.floor(time / 3600);
   if (hours > 0) {

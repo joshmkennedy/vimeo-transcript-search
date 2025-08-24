@@ -15,6 +15,9 @@ function Menu() {
   const r = React.useContext(AppNavigationContext);
   const current = r?.currentPage;
   return <div className="flex items-center gap-2">
+		<Button variant={current == "viewVideos" ? "default" : "outline"} onClick={() => r?.navigate("viewVideos")}>
+			View Videos
+		</Button>
     <Button variant={current == "upload" ? "default" : "outline"} onClick={() => r?.navigate("upload")}>
       Upload
     </Button>

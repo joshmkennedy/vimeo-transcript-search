@@ -117,4 +117,24 @@ class Chat {
             'content' => $prompt,
         ];
     }
+
+    public function freeForm__ollama($data){
+        // Send a POST request
+        try {
+            $response = $this->client->request('POST', "/v1/chat/completions", [
+                'json' => $data, // 'json' option automatically encodes the data and sets Content-Type header
+            ]);
+
+            $body = json_decode($response->getBody()->getContents());
+            if (property_exists($body, 'error')) {
+                throw new \RuntimeException($body->error->message);
+            }
+            return $body->choices[0]->message->content;
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage());
+        } catch (\RuntimeException $e) {
+            error_log($e->getMessage());
+            return ['error' => $e->getMessage()];
+        }
+    }
 }

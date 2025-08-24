@@ -23,7 +23,7 @@ class ReRanker {
         ]);
     }
 
-    public function rerank(string $query, array $docs): array {
+    public function rerank(string $query, array $docs, $take = 10): array {
         $data = [
             'query' => $query,
             'documents' => $docs,
@@ -34,10 +34,10 @@ class ReRanker {
             ]);
 
             $body = json_decode($response->getBody()->getContents());
-            return collect($body)->take(10)->toArray();
+            return collect($body)->take($take)->toArray();
         } catch (\Exception $e) {
             error_log($e->getMessage());
-            return collect($docs)->take(10)->toArray();
+            return collect($docs)->take($take)->toArray();
         }
     }
 }

@@ -34,12 +34,16 @@ class DB {
         return new self($url, $key);
     }
 
-    private function query(string $sql, array $params = []) {
+    // TODO: make this private
+    public function query(string $sql, array $params = [], $named=false) {
         $requests = [];
 
         $stmt = ['sql' => $sql];
-        if (!empty($params)) {
+        if (!empty($params) && !$named) {
             $stmt['args'] = $params;
+        }
+        if(!empty($params) && $named) {
+            $stmt['named_args'] = $params;
         }
 
         $requests[] = ['type' => 'execute', 'stmt' => $stmt];
@@ -68,6 +72,8 @@ class DB {
                     $results[] = $result;
                 }
                 return $results;
+            } else {
+                throw new \Exception(print_r($data, true));
             }
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $response = $e->getResponse();
@@ -92,11 +98,11 @@ class DB {
         ];
 
         $params = [
-            ['type'=>'text', 'value' => $data->title],
-            ['type'=>'text', 'value' => $data->vimeoId],
-            ['type'=>'text', 'value' => $data->content],
-            ['type'=>'float', 'value' => $data->start_time],
-            property_exists($data, "end_time") ? ['type'=>'float', 'value' => $data->end_time] : null,
+            ['type' => 'text', 'value' => $data->title],
+            ['type' => 'text', 'value' => $data->vimeoId],
+            ['type' => 'text', 'value' => $data->content],
+            ['type' => 'float', 'value' => $data->start_time],
+            property_exists($data, "end_time") ? ['type' => 'float', 'value' => $data->end_time] : null,
             $preparedEmbed,
         ];
 
@@ -159,5 +165,52 @@ class DB {
         $results = $this->query($sql);
         return $results ?? [];
     }
-}
 
+    public function upsertChunkLabel(array $data): void {
+        // $data keys expected:
+        // chunk_id (int), labeling_version (string)
+        // topic_tags (array|string), intent (nullable string)
+        // usefulness_score (nullable float 0..1), level (nullable string)
+        // summary (nullable string), key_points (array|string|null)
+        // confidence (nullable float 0..1), video_type ('lecture'|'lab')
+
+        $topicTags = is_array($data['topic_tags'])
+            ? json_encode($data['topic_tags'])
+            : (string)$data['topic_tags'];
+
+        $keyPoints = isset($data['key_points'])
+            ? (is_array($data['key_points']) ? json_encode($data['key_points']) : (string)$data['key_points'])
+            : null;
+
+        $params = [
+            ['type' => 'integer',   'value' => $data['chunk_id']],
+            ['type' => 'text',  'value' => $data['labeling_version']],
+            ['type' => 'text',  'value' => $topicTags],
+            ['type' => 'text',  'value' => $data['intent'] ?? null],
+            ['type' => 'float', 'value' => $data['usefulness_score'] ?? null],
+            ['type' => 'text',  'value' => $data['level'] ?? null],
+            ['type' => 'text',  'value' => $data['summary'] ?? null],
+            ['type' => 'text',  'value' => $keyPoints],
+            ['type' => 'float', 'value' => $data['confidence'] ?? null],
+            ['type' => 'text',  'value' => $data['video_type'] ?? 'lecture'],
+        ];
+
+        $sql = <<<SQL
+    INSERT INTO chunk_labels_new (
+      chunk_id, labeling_version, topic_tags, intent, usefulness_score, level, summary, key_points, confidence, video_type
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(chunk_id) DO UPDATE SET
+      topic_tags = excluded.topic_tags,
+      intent = excluded.intent,
+      usefulness_score = excluded.usefulness_score,
+      level = excluded.level,
+      summary = excluded.summary,
+      key_points = excluded.key_points,
+      confidence = excluded.confidence,
+      video_type = excluded.video_type;
+    SQL;
+
+        $this->query($sql, $params);
+    }
+}

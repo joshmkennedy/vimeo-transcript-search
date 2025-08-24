@@ -63,6 +63,10 @@ class Plugin {
             new \Jk\Vts\Endpoint\PagesWithVideo(),
             'register'
         ]);
+        add_action('rest_api_init', [
+            new \Jk\Vts\Endpoint\VimeoInfo(),
+            'register'
+        ]);
 
         // ADMIN
         add_action(

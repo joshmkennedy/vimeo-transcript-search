@@ -5,6 +5,7 @@ import { AppNavigationProvider, Router } from "./hooks/useAppNavigation";
 import { Upload } from "./components/upload";
 import { Search } from "./components/search";
 import { TestToast } from '@/components/ui/toasts';
+import { ViewVideos } from './components/view-videos';
 
 
 export const App = () => {
@@ -16,7 +17,8 @@ export const App = () => {
           <div className="p-4">
             <Router config={{
               upload: <Upload />,
-              search: <Search />
+              search: <Search />,
+							viewVideos: <ViewVideos />,
             }} />
           </div>
         </main>

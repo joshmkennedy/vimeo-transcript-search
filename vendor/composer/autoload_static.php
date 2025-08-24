@@ -18,6 +18,7 @@ class ComposerStaticInita01752c211ce755859a794faa5a12d59
         'P' => 
         array (
             'Psr\\SimpleCache\\' => 16,
+            'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Container\\' => 14,
@@ -25,6 +26,10 @@ class ComposerStaticInita01752c211ce755859a794faa5a12d59
         'O' => 
         array (
             'Orhanerday\\OpenAi\\' => 18,
+        ),
+        'M' => 
+        array (
+            'Monolog\\' => 8,
         ),
         'J' => 
         array (
@@ -48,6 +53,10 @@ class ComposerStaticInita01752c211ce755859a794faa5a12d59
         array (
             0 => __DIR__ . '/..' . '/psr/simple-cache/src',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/src',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-factory/src',
@@ -64,6 +73,10 @@ class ComposerStaticInita01752c211ce755859a794faa5a12d59
         'Orhanerday\\OpenAi\\' => 
         array (
             0 => __DIR__ . '/..' . '/orhanerday/open-ai/src',
+        ),
+        'Monolog\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
         'Jk\\Vts\\' => 
         array (
