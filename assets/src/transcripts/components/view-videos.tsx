@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { formatTime } from "./search"
+import { formatTime } from "@/lib/format-time";
 import { Button } from "@/components/ui/button";
 import React from "react";
 import Vimeo from "@vimeo/player";
