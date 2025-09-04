@@ -28,8 +28,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./assets/src/*"]
+      "@/*": ["./assets/src/*", "./assets/src/*.d.ts"],
     }
-  }
-
+  },
+	"include": ["./assets/src/**/*"]
 }

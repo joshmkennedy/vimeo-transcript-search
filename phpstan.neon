@@ -2,6 +2,7 @@ parameters:
 	scanFiles:
 		- /Users/joshkennedy/.config/php-stubs/wp-stubs.php
 		- stubs
+		- /Users/joshkennedy/work/jp/wp-config.php
 
 	level: 6
 

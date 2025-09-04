@@ -183,7 +183,7 @@ class DB {
             : null;
 
         $params = [
-            ['type' => 'integer',   'value' => $data['chunk_id']],
+            ['type' => 'integer',   'value' => (string)$data['chunk_id']],
             ['type' => 'text',  'value' => $data['labeling_version']],
             ['type' => 'text',  'value' => $topicTags],
             ['type' => 'text',  'value' => $data['intent'] ?? null],

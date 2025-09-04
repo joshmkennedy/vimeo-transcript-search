@@ -2,6 +2,9 @@
 
 namespace Jk\Vts\Endpoint;
 
+use Jk\Vts\Services\VimeoInfoVideoList;
+
+/** @package Jk\Vts\Endpoint */
 class VimeoInfo {
 
     protected string $namespace = 'vts/v1';
@@ -44,18 +47,8 @@ class VimeoInfo {
         } else {
             return rest_ensure_response(new \WP_Error('invalid_videos', 'Videos is required', array('status' => 400)));
         }
-        $vimeoApi = new \Jk\Vts\Services\VimeoApi();
-        foreach ($videos as $key => $video) {
-            $vimeoId = $video['vimeoId'] ?? null;
-            if ($vimeoId) {
-                if($cached = get_transient("vts_vimeo_info_$vimeoId")){
-                    $videos[$key] = array_merge($cached, $video);
-                    continue;
-                }
-                $videos[$key] = array_merge($video, $vimeoApi->getVideoInfo($vimeoId, ['name', 'uri', 'pictures' => [0 => 'base_link'], 'player_embed_url']));
-                set_transient("vts_vimeo_info_$vimeoId", $videos[$key], \YEAR_IN_SECONDS);
-            }
-        }
+
+        $videos = VimeoInfoVideoList::getVideoInfoList($videos);
 
         return rest_ensure_response($videos);
     }

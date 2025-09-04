@@ -137,4 +137,31 @@ class Chat {
             return ['error' => $e->getMessage()];
         }
     }
+
+    public function freeForm__openai($messages, $model = 'gpt-4-turbo', $max_tokens = 1000, $temperature = 0){
+        try {
+            $json = $this->openai->chat([
+                'model' => $model,
+                'messages' => $messages,
+                // 'temperature' => $temperature,
+                // 'max_tokens' => $max_tokens,
+            ]);
+            $results = json_decode($json);
+            if(!$results){
+                throw new \RuntimeException("No results");
+            }
+
+            if (property_exists($results, 'error')) {
+                throw new \RuntimeException($results->error->message);
+            }
+
+            $content = $results->choices[0]->message->content;
+            return $content;
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage());
+        } catch (\RuntimeException $e) {
+            error_log($e->getMessage());
+            return ['error' => $e->getMessage()];
+        }
+    }
 }

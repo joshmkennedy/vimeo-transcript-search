@@ -7,6 +7,7 @@ import React from "react"
 import { useForm } from "react-hook-form"
 import z from "zod"
 import toast from "react-hot-toast";
+import { formatTime } from "@/lib/format-time";
 
 const formSchema = z.object({
   query: z.string(),
@@ -149,18 +150,6 @@ function SearchResult({
   </div>
 }
 
-export function formatTime(time: number) {
-  let timestamp = '';
-  const hours = Math.floor(time / 3600);
-  if (hours > 0) {
-    timestamp += `${hours}:`;
-  }
-  const minutes = Math.floor(time / 60) % 60;
-  timestamp += `${minutes < 10 ? "0" + minutes : minutes}:`;
-  const seconds = Math.floor(time % 60);
-  timestamp += `${seconds < 10 ? "0" + seconds : seconds}`;
-  return timestamp;
-}
 
 
 function PreviewVimeoVideo({ selectedResult }: { selectedResult: SearchResultType | undefined }) {

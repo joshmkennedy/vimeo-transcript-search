@@ -15,6 +15,7 @@
         "illuminate/collections": "^12.20",
         "guzzlehttp/guzzle": "^7.9",
         "orhanerday/open-ai": "^5.3",
-        "monolog/monolog": "^3.9"
+        "monolog/monolog": "^3.9",
+        "parsecsv/php-parsecsv": "^1.3"
     }
 }

@@ -1,11 +1,30 @@
 {
+  "_player.es-CajtPz-0.js": {
+    "file": "assets/player.es-CajtPz-0.js",
+    "name": "player.es"
+  },
   "assets/src/admin.ts": {
-    "file": "assets/admin-GnSHwwpX.js",
+    "file": "assets/admin-EbC7WyfD.js",
     "name": "admin",
     "src": "assets/src/admin.ts",
     "isEntry": true,
+    "imports": [
+      "_player.es-CajtPz-0.js"
+    ],
     "css": [
       "assets/admin-B6r3X-f8.css"
+    ]
+  },
+  "assets/src/frontend.ts": {
+    "file": "assets/frontend-BO3rWX_9.js",
+    "name": "frontend",
+    "src": "assets/src/frontend.ts",
+    "isEntry": true,
+    "imports": [
+      "_player.es-CajtPz-0.js"
+    ],
+    "css": [
+      "assets/frontend-DOUyVLnS.css"
     ]
   }
 }

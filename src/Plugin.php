@@ -37,6 +37,15 @@ class Plugin {
     }
 
     private function addHooks() {
+        // POST TYPES
+        add_action(
+            'init',
+            [
+                new \Jk\Vts\Admin\ACLAdminPage($this->path, $this->url),
+                'registerPostType'
+            ]
+        );
+
         // REST ROUTES
         add_action(
             'rest_api_init',
@@ -67,6 +76,14 @@ class Plugin {
             new \Jk\Vts\Endpoint\VimeoInfo(),
             'register'
         ]);
+        // AIM CLIP LIST Editor Endpoints
+        add_action(
+            'rest_api_init',
+            [
+                new \Jk\Vts\Endpoint\ACLEditor(),
+                'register'
+            ]
+        );
 
         // ADMIN
         add_action(
@@ -76,10 +93,37 @@ class Plugin {
                 'register'
             ]
         );
+
+
+
+        // AIM CLIP LIST Post Type Editor
+        add_action(
+            'admin_menu',
+            [
+                new \Jk\Vts\Admin\ACLAdminPage($this->path, $this->url),
+                'registerEditorPage'
+            ]
+        );
+
+        // Plugin's Settings
         add_action('admin_init', [
             new \Jk\Vts\Admin\Settings(),
             'register'
         ]);
+
+        // override edit post link for aim clip list allowing for our custom editor
+        add_filter(
+            'get_edit_post_link',
+            [new \Jk\Vts\Admin\ACLAdminPage($this->path, $this->url), 'postTypeEditorLink'],
+            10,
+            2,
+        );
+        add_action(
+            'current_screen',
+            [new \Jk\Vts\Admin\ACLAdminPage($this->path, $this->url), 'redirectNewPost'],
+            10,
+            1
+        );
 
         // assets for admin
         add_action(
@@ -87,6 +131,24 @@ class Plugin {
             [
                 new \Jk\Vts\Admin\AdminPage($this->path, $this->url),
                 'enqueueAsset'
+            ]
+        );
+
+        // assets for aim clip list editor
+        add_action(
+            'admin_enqueue_scripts',
+            [
+                new \Jk\Vts\Admin\ACLAdminPage($this->path, $this->url),
+                'enqueueAsset'
+            ]
+        );
+
+        // assets for frontend
+        add_action(
+            'wp_enqueue_scripts',
+            [
+                new \Jk\Vts\Public\Assets($this->path, $this->url),
+                'enqueueAssets'
             ]
         );
 

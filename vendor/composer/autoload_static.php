@@ -22,6 +22,7 @@ class ComposerStaticInita01752c211ce755859a794faa5a12d59
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Container\\' => 14,
+            'ParseCsv\\' => 9,
         ),
         'O' => 
         array (
@@ -69,6 +70,10 @@ class ComposerStaticInita01752c211ce755859a794faa5a12d59
         'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'ParseCsv\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/parsecsv/php-parsecsv/src',
         ),
         'Orhanerday\\OpenAi\\' => 
         array (
