@@ -3,7 +3,7 @@ import "../css/main.css";
 import type { AimClipListPost, AimClipListResources, AiVimeoResult, ClipListMetaItem } from "./types";
 import { useMemo, useRef, useState } from "react";
 import { useAtom } from "jotai";
-import { API, AppState, AppStore, ListItems } from "./store";
+import { API, AppState, AppStore, ListItems, type WeekInfoType } from "./store";
 import toast, { Toaster } from "react-hot-toast";
 import { AppStateListener } from "./components/app-state-listener";
 import { UploadVideoCsv } from "./components/upload-video-csv";
@@ -23,6 +23,7 @@ type AppProps = {
   items: ClipListMetaItem[];
   previewList: Record<string, Omit<AiVimeoResult, keyof ClipListMetaItem>>;
   resources: AimClipListResources[];
+	weeksInfo: Record<number, WeekInfoType>;
 }
 
 function App({
@@ -33,6 +34,7 @@ function App({
   postId,
   items,
   resources,
+	weeksInfo = {},
 }: AppProps) {
   const [store, setAppStore] = useAtom(AppStore);
   const [, setAPI] = useAtom(API);
@@ -45,7 +47,7 @@ function App({
       url: apiUrl,
       nonce: nonce,
     });
-    setAppStore({ post, postId, items, resources });
+    setAppStore({ post, postId, items, resources, weeksInfo });
   }, [apiUrl, nonce]);
 
   function upgradeToEditPost(postId: number) {
@@ -59,10 +61,6 @@ function App({
     }
   }
 
-  console.log(store.items.length);
-
-  // TODO: pull from preview list to upgrade list Items and use that in results of VideoList.
-  // So we can view updates that happen to the list.
 
   const listWithPreview = useMemo(() => {
     return store.items.map(item => {
@@ -133,6 +131,7 @@ function App({
   }
 
   const [activeWeek, setActiveWeek] = useState(1);
+
   function addVideoToWeek(clip_id: string) {
     const itemIdx = _items.findIndex(v => v.clip_id === clip_id);
     if (itemIdx === -1) {
@@ -152,10 +151,8 @@ function App({
       data: [...newItems],
     })
     toast.success("Item added to week");
-    console.log("items after added to the list",items);
   }
 
-  console.log(selectedItem, selectedPreview);
   return <>
     <div className="max-w-[2000px] bg-white p-4 lg:p-8 xl:p-12 xl:py-8 rounded-lg shadow-sm border-neutral-200 border flex flex-col gap-6 items-start">
       <EditorHeader menuItems={menuItems} />

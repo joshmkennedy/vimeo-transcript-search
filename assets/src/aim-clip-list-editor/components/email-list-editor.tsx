@@ -12,7 +12,7 @@ import type { AiVimeoResult } from "../types";
 import { Badge } from "@/components/ui/badge";
 import toast from "react-hot-toast";
 import { useAtom } from "jotai";
-import { AppState, ListItems, Resources } from "../store";
+import { AppState, ListItems, Resources, WeekInfo, type WeekInfoType } from "../store";
 import { FormInput } from "@/components/ui/form-input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EllipsisVertical } from "lucide-react";
@@ -26,9 +26,8 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
   const [appResources, setResources] = useAtom(Resources);
   const api = useAPI();
   const videosByWeek = Object.groupBy(videos, v => v.week_index ?? -1);
-  console.log(videosByWeek);
+
   const resourcesByWeek = Object.groupBy(appResources ?? [], v => v.week_index ?? -1);
-  console.log(resourcesByWeek);
 
   async function previewEmail(weekIndex: number) {
     const videosInWeek = videosByWeek[weekIndex]!;
@@ -57,6 +56,7 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
     }
   }
 
+
   return <div className="">
     <Button variant="secondary" onClick={buildResources}>Find Resources Weeks</Button>
     <Accordion type="single" collapsible onValueChange={(week) => setActiveWeek(Number(week))} value={activeWeek.toString()}>
@@ -70,11 +70,12 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
               <Badge className="ml-2" variant="secondary">Resources {resourcesByWeek[weekIndex]?.length ?? 0}</Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent>
+          <AccordionContent className="flex flex-col gap-4">
             <header className="flex flex-row items-center gap-2 justify-between">
               <p className="text-lg font-bold">Week {i + 1}</p>
               <Button variant="secondary" onClick={() => previewEmail(weekIndex)}>Preview Email</Button>
             </header>
+            <WeekInfoEditor weekIndex={weekIndex} />
             {videosByWeek[weekIndex] && videosByWeek[weekIndex].length > 0 ? (
               <>
                 <VideosInWeek weekIndex={weekIndex} videos={videosByWeek[weekIndex]} />
@@ -105,7 +106,9 @@ function ResourcesInWeek({ weekIndex, resources }: { weekIndex: number, resource
           href={resource.link}
           target="_blank"
           rel="noreferrer"
-        >{resource.label}</a>
+        >
+          <span dangerouslySetInnerHTML={{ __html: resource.label }} />
+        </a>
       </div>
     })}
   </div>
@@ -140,7 +143,7 @@ function VideoInWeek({ weekIndex, video }: { weekIndex: number, video: AiVimeoRe
     }
     const newItems = [...items];
     newItems[index] = newItem;
-    console.log(newItems[index].video_type);
+
     setItems({
       data: newItems,
     })
@@ -161,15 +164,17 @@ function VideoInWeek({ weekIndex, video }: { weekIndex: number, video: AiVimeoRe
   }
 
   return <div className="flex flex-col gap-2 bg-neutral-100 p-4 rounded-md hover:bg-neutral-200">
-    <header>
+    <header className="relative">
       <div>
-        <p>{video.name}</p>
+        <div className="flex flex-row items-start gap-2 ">
+          <p>{video.name}</p>
+          <VideoInWeekMenu options={options} save={handleSave} />
+        </div>
         <p className="text-xs">
           {formatTime(video.start)} - {video.end ? formatTime(video.end) : 'end'}
         </p>
-				<div>{video.video_type}</div>
+        <div>{video.video_type}</div>
       </div>
-      <VideoInWeekMenu options={options} save={handleSave} />
     </header>
     <div>
       <img className="w-full rounded-md" src={video.pictures.base_link} alt={video.name} />
@@ -205,7 +210,7 @@ function VideoInWeekMenu({ options, save }: { options: ClipListMetaItem, save: (
   }
   console.log(options);
   return <Dialog open={isopen} onOpenChange={(s) => setIsOpen(s)}>
-    <DialogTrigger>
+    <DialogTrigger className="hover:bg-neutral-300 p-2 rounded-md relative -top-1 -right-1">
       <EllipsisVertical className="h-5 w-5" />
     </DialogTrigger>
     <DialogContent>
@@ -233,8 +238,44 @@ function VideoInWeekTypeOptions({ value }: { value: string | undefined }) {
       <SelectValue placeholder="Select a video type" />
     </SelectTrigger>
     <SelectContent>
-      <SelectItem value="lecture">Lecture</SelectItem>
-      <SelectItem value="lab">Lab</SelectItem>
+      <SelectItem value="Lecture">Lecture</SelectItem>
+      <SelectItem value="Secondary Lecture">Secondary Lecture</SelectItem>
+      <SelectItem value="Lab">Lab</SelectItem>
     </SelectContent>
   </Select>
+}
+
+export function WeekInfoEditor({ weekIndex }: { weekIndex: number }) {
+  const [weekInfo, setWeekInfo] = useAtom(WeekInfo);
+  const [localWeekInfo, setLocalWeekInfo] = useState(weekInfo[weekIndex] ?? {
+    intro: "",
+  });
+
+  function saveWeekInfo(weekIndex: number, updatedInfo: Partial<WeekInfoType> & { intro: string }) {
+    const copy = { ...weekInfo };
+    copy[weekIndex] = { ...copy[weekIndex], ...updatedInfo };
+    setWeekInfo({
+      data: copy,
+    })
+  }
+  return <form
+    className="flex flex-col gap-2 p-2 bg-neutral-50/20 rounded-md "
+    onSubmit={(e) => { e.preventDefault(); saveWeekInfo(weekIndex, localWeekInfo); }}
+  >
+    <div className="flex flex-row items-center gap-2 justify-end">
+      <Button onClick={() => toast.error("Not Implemented Yet")} className="bg-purple-50 text-purple-800 hover:bg-purple-100 hover:text-purple-900 ">
+        Generate Intro with Ai
+      </Button>
+      <Button type="submit" variant="secondary">Save Intro</Button>
+    </div>
+    <FormInput>
+      <Label className="text-sm font-bold">Week {weekIndex}'s Introduction to the Email</Label>
+      <textarea
+        placeholder="Week Intro"
+        className="rounded-sm w-full md:text-lg border-1 border-neutral-200 focus-visible:border-transparent h-auto font-medium focus-visible:ring-4 focus-visible:ring-blue-200/35"
+        value={localWeekInfo.intro}
+        onChange={(e) => setLocalWeekInfo({ ...localWeekInfo, intro: e.target.value })}
+      ></textarea>
+    </FormInput>
+  </form>
 }

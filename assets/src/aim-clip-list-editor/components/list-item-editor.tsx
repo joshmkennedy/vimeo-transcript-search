@@ -11,6 +11,7 @@ import { FormMessage, FormDescription, FormControl } from "@/components/ui/form"
 import { Input } from "@/components/ui/input";
 import { FastForward, Rewind } from "lucide-react";
 import { formatTime } from "@/lib/format-time";
+import toast from "react-hot-toast";
 
 export function ListItemEditor({ item, vimeoInstance, duplicateItem }: { item: ClipListMetaItem | undefined, vimeoInstance: Vimeo, duplicateItem: (item: ClipListMetaItem) => void }) {
   console.log(item?.clip_id);
@@ -39,11 +40,11 @@ export function ListItemEditor({ item, vimeoInstance, duplicateItem }: { item: C
     setEndTime(curr);
   }
   function handleToggleInList() {
-    console.log("in list",inList);
+    console.log("in list", inList);
     setInList(s => {
-     const newValue = !s;
-     console.log("new value",newValue);
-     return newValue;
+      const newValue = !s;
+      console.log("new value", newValue);
+      return newValue;
     });
   }
 
@@ -58,6 +59,7 @@ export function ListItemEditor({ item, vimeoInstance, duplicateItem }: { item: C
       start: startTime,
       end: endTime,
       in_list: inList,
+      summary: summary,
     }
     setItems({
       data: copy
@@ -80,23 +82,23 @@ export function ListItemEditor({ item, vimeoInstance, duplicateItem }: { item: C
           </VtsTabsTrigger>
         </TabsList>
         <div className="flex flex-row items-center gap-2 justify-end">
-          <Button onClick={handleToggleInList} variant="secondary">{inList ? "Remove from List" : "Edit To be in List"}</Button>
-          {(inList || !inList && item.in_list) && <Button onClick={handleSave} className="hover:bg-neutral-600">Publish to List</Button>}
-          <Button onClick={() => duplicateItem(item)} className="hover:bg-neutral-600">Duplicate</Button>
+          <Button onClick={() => duplicateItem(item)} variant={"secondary"} className="hover:bg-neutral-400">Duplicate</Button>
+          <Button onClick={handleToggleInList} variant="secondary">{inList ? "Remove from List" : "Add to List"}</Button>
+          <Button onClick={handleSave} className="hover:bg-neutral-600">Save</Button>
         </div>
       </div>
       <TabsContent value="times" className="w-full flex flex-col gap-4">
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center gap-2">
+          <Button onClick={handleSetStartTime} className="bg-neutral-200 border border-neutral-300 hover:bg-neutral-300 text-neutral-950">Set Start Time</Button>
           <div className="flex flex-row items-center gap-2 bg-secondary p-4 rounded-md">
             <div><span className="font-bold">Start:</span> {formatTime(startTime)}</div> |
             <div><span className="font-bold">End:</span> {formatTime(endTime)}</div> |
             <div><span className="font-bold">Duration:</span> {formatTime(endTime - startTime)}</div>
           </div>
+          <Button onClick={handleSetEndTime}  className="bg-neutral-200 border border-neutral-300 hover:bg-neutral-300 text-neutral-950">Set End Time</Button>
         </div>
         <div className="flex flex-row justify-between items-center gap-2">
-          {inList && <Button onClick={handleSetStartTime} variant="secondary" className="hover:bg-neutral-300">Set Start Time</Button>}
           <Controls vimeoInstance={vimeoInstance} start={startTime} end={endTime} />
-          {inList && <Button onClick={handleSetEndTime} variant="secondary" className="hover:bg-neutral-300">Set End Time</Button>}
         </div>
       </TabsContent>
       <TabsContent value="summary" className="w-full">
@@ -110,6 +112,11 @@ export function ListItemEditor({ item, vimeoInstance, duplicateItem }: { item: C
               onChange={(e) => setSummary(e.target.value)}
             ></textarea>
           </FormInput>
+					<div>
+						<Button onClick={()=>toast.error("Not Implemented Yet")} className="bg-purple-50 text-purple-800 hover:bg-purple-100 hover:text-purple-900 ">
+							Generate with Ai
+						</Button>
+					</div>
         </div>
       </TabsContent>
     </Tabs>
@@ -125,10 +132,10 @@ function Controls({ vimeoInstance, start, end }: { vimeoInstance: Vimeo, start: 
     const _currentTime = await vimeoInstance.getCurrentTime();
     vimeoInstance.setCurrentTime(_currentTime + 5);
   }
-  async function setToStart(){
+  async function setToStart() {
     vimeoInstance.setCurrentTime(start);
   }
-  async function setToEnd(){
+  async function setToEnd() {
     vimeoInstance.setCurrentTime(end);
   }
   async function handleScrub(e: FormEvent) {
@@ -154,10 +161,10 @@ function Controls({ vimeoInstance, start, end }: { vimeoInstance: Vimeo, start: 
       5s
     </Button>
     <div className="flex flex-row items-center justify-center gap-2 ">
-    <form onSubmit={handleScrub}>
-      <input type="text" name="scrub-to" id="scrub-to" />
-      <Button type="submit" variant="secondary">Set</Button>
-    </form>
+      <form onSubmit={handleScrub} className="flex flex-row items-center gap-0 w-[250px] border border-neutral-400 rounded-md">
+        <input type="text" name="scrub-to" id="scrub-to" className=" border-0 min-w-0" />
+        <Button type="submit" variant="secondary">Set Time</Button>
+      </form>
     </div>
     <Button onClick={fastForward} variant="ghost">
       5s

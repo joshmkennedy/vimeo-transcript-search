@@ -147,6 +147,7 @@ class ACLEditor {
         $items = $body['items'];
         $post = $body['post'];
         $resources = $body['resources'] ?? [];
+        $weeksInfo = $body['weeksInfo'] ?? [];
 
         $this->log()->info("updating post");
         $error = wp_update_post([
@@ -158,7 +159,7 @@ class ACLEditor {
             return rest_ensure_response($error);
         }
         $this->log()->info("saving meta");
-        $this->meta->save($postId, $items, $resources);
+        $this->meta->save($postId, $items, $resources, $weeksInfo);
         $this->log()->info("sending data");
         try {
             return rest_ensure_response([
@@ -168,6 +169,7 @@ class ACLEditor {
                 ],
                 'items' => $this->meta->getItems($postId),
                 'resources' => $this->meta->getResources($postId) ?? [],
+                'weeksInfo' => $this->meta->getWeeksInfo($postId) ?? [],
             ]);
         } catch (\Exception $e) {
             error_log($e->getMessage());

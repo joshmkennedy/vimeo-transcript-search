@@ -3,7 +3,7 @@
         'name' => 'jk/vts',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '1fa9c6f920e4dc1edef0e3abe3acdc01a0b380b0',
+        'reference' => '2b149d5d5cf2a0d04061026277ae491d72054e87',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -76,7 +76,7 @@
         'jk/vts' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '1fa9c6f920e4dc1edef0e3abe3acdc01a0b380b0',
+            'reference' => '2b149d5d5cf2a0d04061026277ae491d72054e87',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

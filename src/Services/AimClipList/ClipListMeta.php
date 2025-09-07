@@ -9,14 +9,20 @@ class ClipListMeta {
     use LoggerTrait;
     const metaKey = 'aim-clip-list-items';
     const resourcesKey = 'aim-clip-list-resources';
+    const weeksInfoKey = 'aim-clip-list-weeks-info';
+
     public function __construct() {
     }
 
-    public function save(string $postId, array $data, mixed $resources) {
+    public function save(string $postId, array $data, mixed $resources, mixed $weeksInfo) {
         // error_log(print_r("here: $data", true));
         if ($resources && is_array($resources)) {
             $this->log()->info("saving resources");
             update_post_meta($postId, self::resourcesKey, $resources);
+        }
+        if ($weeksInfo && is_array($weeksInfo)) {
+            $this->log()->info("saving weeks info");
+            update_post_meta($postId, self::weeksInfoKey, $weeksInfo);
         }
         $this->log()->info("saving items");
         // TODO: make this better when returning errors
@@ -35,6 +41,13 @@ class ClipListMeta {
             return [];
         }
         return get_post_meta($postId, self::resourcesKey, true) ?? [];
+    }
+
+    public function getWeeksInfo(int|null $postId) {
+        if (!$postId) {
+            return [];
+        }
+        return get_post_meta($postId, self::weeksInfoKey, true) ?? [];
     }
 
     // TODO: Improve the extendablility of this

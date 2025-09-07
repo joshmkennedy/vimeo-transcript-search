@@ -13,6 +13,7 @@ declare global {
       items: any;
       previewList: any;
       resources: any;
+      weeksInfo:any;
     };
     vtsPublic: {
       nonce: string;

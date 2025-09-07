@@ -26,6 +26,7 @@ export type AppStoreT = {
   postId: number | string;
   items: ClipListMetaItem[];
   resources: AimClipListResources[];
+	weeksInfo: Record<number, WeekInfoType>;
 };
 
 export const AppStore = atom<AppStoreT>({
@@ -33,6 +34,7 @@ export const AppStore = atom<AppStoreT>({
   postId: 0,
   items: [],
   resources: [],
+	weeksInfo: {},
 });
 
 export const PostData = atom<AimClipListPost, [{data:AimClipListPost, fromDb?:boolean}], void>(
@@ -94,3 +96,22 @@ export const API = atom<{ url: string; nonce: string }>({ url: "", nonce: "" });
 export const AppDataDirty = atom<boolean>(false);
 
 export const AppLocation = atom<string>('videos');
+
+export type WeekInfoType = {
+  intro: string;
+}
+type WeekInfoRecords = Record<number, WeekInfoType>;
+
+
+export const WeekInfo = atom<WeekInfoRecords, [{data:WeekInfoRecords, fromDb?:boolean}], void>(
+	(get)=>get(AppStore).weeksInfo,
+	(get, set, {data, fromDb=false}) => {
+		set(AppStore, {
+			...get(AppStore),
+			weeksInfo: data,
+		});
+		if(!fromDb){
+			set(AppDataDirty, !fromDb);
+		}
+	}
+);

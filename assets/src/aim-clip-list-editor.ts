@@ -11,5 +11,6 @@ window.addEventListener("DOMContentLoaded", () => {
     nonce: window.vtsACLEditor.nonce,
     post: window.vtsACLEditor.post,
     resources: window.vtsACLEditor.resources ?? [],
+    weeksInfo: window.vtsACLEditor.weeksInfo ?? {},
   });
 });
