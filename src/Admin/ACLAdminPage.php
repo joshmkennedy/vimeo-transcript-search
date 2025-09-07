@@ -34,6 +34,26 @@ class ACLAdminPage {
                 return current_user_can('edit_posts');
             },
         ]);
+        register_meta('post', $this->meta::resourcesKey, [
+            'type' => 'array',
+            'show_in_rest' => [
+                'schema' => $this->meta->getResourceSchema(),
+            ],
+            'single' => true,
+            'auth_callback' => function () {
+                return current_user_can('edit_posts');
+            },
+        ]);
+        register_meta('post', $this->meta::weeksInfoKey, [
+            'type' => 'array',
+            'show_in_rest' => [
+                'schema' => $this->meta->getWeeksInfoSchema(),
+            ],
+            'single' => true,
+            'auth_callback' => function () {
+                return current_user_can('edit_posts');
+            },
+        ]);
     }
 
     public function enqueueAsset(): void {

@@ -63,9 +63,10 @@ class ACLEditor {
         if (!$resources || !is_array($resources)) {
             $resources = [];
         }
+        $weeksInfo = $this->meta->getWeeksInfo($postId);
 
         $this->log()->info("saving meta");
-        $error = $this->meta->save($postId, $items, $resources);
+        $error = $this->meta->save($postId, $items, $resources, $weeksInfo);
         if (is_wp_error($error)) {
             return rest_ensure_response($error);
         }

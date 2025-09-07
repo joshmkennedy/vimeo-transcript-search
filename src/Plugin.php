@@ -37,6 +37,7 @@ class Plugin {
     }
 
     private function addHooks() {
+
         // POST TYPES
         add_action(
             'init',
@@ -46,7 +47,9 @@ class Plugin {
             ]
         );
 
-        // REST ROUTES
+
+        // ** REST API **
+
         add_action(
             'rest_api_init',
             [
@@ -85,7 +88,9 @@ class Plugin {
             ]
         );
 
-        // ADMIN
+        // ** ADMIN PAGES **
+
+        // ADMIN PAGE
         add_action(
             'admin_menu',
             [
@@ -93,8 +98,6 @@ class Plugin {
                 'register'
             ]
         );
-
-
 
         // AIM CLIP LIST Post Type Editor
         add_action(
@@ -124,6 +127,9 @@ class Plugin {
             10,
             1
         );
+
+
+        // ** ASSETS **
 
         // assets for admin
         add_action(
@@ -162,6 +168,19 @@ class Plugin {
             [new Vite($this->url, $this->path), 'use_esm_modules'],
             10,
             3
+        );
+
+
+        // ** SCHEDULED ACTIONS **
+
+        // AIM Clip list emails
+        add_action(
+            'init',
+            [new \Jk\Vts\Actions\AimClipListJobs($this->path, $this->url), 'scheduleActions']
+        );
+        add_action(
+            \Jk\Vts\Actions\AimClipListJobs::SEND_EMAILS_ACTION,
+            [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'queueEmails']
         );
     }
 }

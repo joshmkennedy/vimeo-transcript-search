@@ -21,7 +21,7 @@ class ClipListEmail {
     public function send($emailAddress) {
         $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
         $content = $this->template->templateOneMarkup(
-            site_url() . "/jp.test/wp-content/uploads/2025/01/1-Mark@2x.png",
+            site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
             $this->config,
         );
         $this->emailService->send(
@@ -32,6 +32,28 @@ class ClipListEmail {
                 'Content-Type: text/html; charset=UTF-8',
             ],
         );
+    }
+
+
+    public function generateEmail($emailAddress) {
+        $content = $this->generateEmailContent($emailAddress);
+        return [
+            'emailAddress' => $emailAddress,
+            'subject' => $this->config['title'],
+            'content' => $content,
+            'headers' => [
+                'Content-Type: text/html; charset=UTF-8',
+            ],
+        ];
+    }
+
+    private function generateEmailContent($emailAddress) {
+        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
+        $content = $this->template->templateOneMarkup(
+            site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
+            $this->config,
+        );
+        return $content;
     }
 
     public function getWeekConfig($weekIndex) {

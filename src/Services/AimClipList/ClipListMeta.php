@@ -47,7 +47,7 @@ class ClipListMeta {
         if (!$postId) {
             return [];
         }
-        return get_post_meta($postId, self::weeksInfoKey, true) ?? [];
+        return get_post_meta($postId, self::weeksInfoKey, true) ?? $this->getWeeksInfoDefaults();
     }
 
     // TODO: Improve the extendablility of this
@@ -165,16 +165,109 @@ class ClipListMeta {
         ];
     }
 
+    public function getWeeksInfoSchema() {
+        return [
+            'items' => [
+                'type' => 'object',
+                'properties' => [
+                    'week_index' => [
+                        'type' => 'string', // week_1, week_2, week_3
+                    ],
+                    'emails' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'email' => [
+                                    'type' => 'string', // email name (week_1_videos_for_this_week, week_1_reminders)
+                                ],
+                                'sendTime' => [
+                                    'type' => 'string', // day of week ( 1, 2 ,3...) 0=Sunday, 1=Monday
+                                ],
+                                'next_email' => [
+                                    'type' => 'string', // week_2_videos_for_this_week, week_2_reminders, last (last if there are no more emails or weeks configured)
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    private function getWeeksInfoDefaults() {
+        return [
+            [
+                'week_index' => 'week_1',
+                'emails' => $this->getWeekDefaultEmails(weekIndex: 1, nextEmail: 'last'),
+            ],
+        ];
+    }
+
+    public function getWeekDefaultEmails(int $weekIndex, string $nextEmail = 'last') {
+        $emails = [
+            [
+                'email' => 'week_' . $weekIndex . '_videos_for_this_week',
+                'sendTime' => '1', // send on the following Monday,
+                'next_email' => 'week_' . $weekIndex . '_reminders',
+            ],
+            [
+                'email' => 'week_' . $weekIndex . '_reminders',
+                'sendTime' => '3', // send on the following Wednesday,
+                'next_email' => $nextEmail,
+            ],
+        ];
+        return $emails;
+    }
+
+    public function addEmailToWeek(int $listId, string $emailName, int $weekIndex, string $nextEmail) {
+        throw new \Exception("Not implemented");
+    }
+
     private function findVimeoId(array $row) {
         if (isset($row['vimeoId'])) {
             return $row['vimeoId'];
         }
-        if(isset($row['vimeo_id'])){
+        if (isset($row['vimeo_id'])) {
             return $row['vimeo_id'];
         }
-        if(isset($row['vimeo id'])){
+        if (isset($row['vimeo id'])) {
             return $row['vimeo id'];
         }
         return null;
+    }
+
+    public function getNextEmail(int $listId, string $emailName) {
+        $weekIdx = $this->getWeekIdx($emailName);
+        if (!$weekIdx) {
+            return null;
+        }
+        $weekInfo = $this->getWeeksInfo($listId);
+
+        $key = array_search($weekIdx, $weekInfo);
+        if (!isset($weekInfo[$key]) || !isset($weekInfo[$key]['emails'])) {
+            return null;
+        }
+
+        $email = array_find($weekInfo[$key]['emails'], fn($email) => $email['email'] === $emailName);
+        if (!$email) {
+            return null;
+        }
+        $nextEmail = $email['next_email'];
+
+        return $nextEmail;
+    }
+
+    private function getWeekIdx(string $emailName) {
+        if (strpos($emailName, 'week_') !== 0) {
+            error_log("Email name $emailName does not start with week_");
+            return null;
+        }
+        preg_match('/(week_\d+)/', $emailName, $matches);
+        if (!isset($matches[1]) || $matches[1] === '') {
+            error_log("No week index found for email name $emailName");
+            return null;
+        }
+        return $matches[1];
     }
 }
