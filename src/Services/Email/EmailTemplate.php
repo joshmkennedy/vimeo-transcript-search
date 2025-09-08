@@ -5,7 +5,7 @@ namespace Jk\Vts\Services\Email;
 
 class EmailTemplate {
 
-    public function templateOneMarkup($headerImage, $config) {
+    public function clipListTemplate($headerImage, $config) {
         ob_start(); ?>
 
         <?php $this->docStart($config['title']); ?>
@@ -25,7 +25,41 @@ class EmailTemplate {
                         <!-- Outer container -->
                         <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff;">
 
-                            <?= $this->contentMarkup($config); ?>
+                            <?= $this->clipListContentMarkup($config); ?>
+
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </center>
+
+        <?php $this->docEnd(); ?>
+
+    <?php
+        return ob_get_clean();
+    }
+
+    public function textBasedTemplate($headerImage, $config) {
+        ob_start(); ?>
+
+        <?php $this->docStart($config['title']); ?>
+
+        <center>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+
+                <?php $this->headerMarkup(
+                    title: $config['title'],
+                    imageUrl: $headerImage,
+                    imageStyles: null,
+                    imageAlt: "Ai Marketing Academy",
+                ); ?>
+
+                <tr>
+                    <td align="center" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                        <!-- Outer container -->
+                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff;">
+
+                            <?= $this->textBasedContentMarkup($config); ?>
 
                         </table>
                     </td>
@@ -170,7 +204,7 @@ class EmailTemplate {
     <?php
     }
 
-    public function contentMarkup($config) {
+    public function clipListContentMarkup($config) {
         ob_start(); ?>
         <tr>
             <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
@@ -218,6 +252,19 @@ class EmailTemplate {
         ?>
         <!-- List of links -->
         <?php $this->linkListMarkup("This weeks resources", $config['links']); ?>
+
+        <?php $this->footerMarkup($config['opt_out_user_link']); ?>
+
+    <?php return ob_get_clean();
+    }
+
+    public function textBasedContentMarkup($config) {
+        ob_start(); ?>
+        <tr>
+            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                <?= $config['textContent']; ?>
+            </td>
+        </tr>
 
         <?php $this->footerMarkup($config['opt_out_user_link']); ?>
 

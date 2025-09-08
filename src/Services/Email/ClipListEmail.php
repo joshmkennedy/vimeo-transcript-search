@@ -20,7 +20,7 @@ class ClipListEmail {
 
     public function send($emailAddress) {
         $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
-        $content = $this->template->templateOneMarkup(
+        $content = $this->template->clipListTemplate(
             site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
             $this->config,
         );
@@ -35,8 +35,8 @@ class ClipListEmail {
     }
 
 
-    public function generateEmail($emailAddress) {
-        $content = $this->generateEmailContent($emailAddress);
+    public function generateClipListEmail($emailAddress) {
+        $content = $this->generateClipListEmailContent($emailAddress);
         return [
             'emailAddress' => $emailAddress,
             'subject' => $this->config['title'],
@@ -47,9 +47,29 @@ class ClipListEmail {
         ];
     }
 
-    private function generateEmailContent($emailAddress) {
+    private function generateClipListEmailContent($emailAddress) {
         $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
-        $content = $this->template->templateOneMarkup(
+        $content = $this->template->clipListTemplate(
+            site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
+            $this->config,
+        );
+        return $content;
+    }
+
+    public function generateTextBasedEmail($emailAddress) {
+        $content = $this->generateTextBasedEmailContent($emailAddress);
+        return [
+            'emailAddress' => $emailAddress,
+            'subject' => $this->config['title'],
+            'content' => $content,
+            'headers' => [
+                'Content-Type: text/html; charset=UTF-8',
+            ],
+        ];
+    }
+    private function generateTextBasedEmailContent($emailAddress) {
+        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
+        $content = $this->template->textBasedTemplate(
             site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
             $this->config,
         );

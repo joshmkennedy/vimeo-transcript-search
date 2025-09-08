@@ -26,7 +26,7 @@ export type AppStoreT = {
   postId: number | string;
   items: ClipListMetaItem[];
   resources: AimClipListResources[];
-	weeksInfo: Record<number, WeekInfoType>;
+  weeksInfo: Record<number, WeekInfoType>;
 };
 
 export const AppStore = atom<AppStoreT>({
@@ -34,17 +34,17 @@ export const AppStore = atom<AppStoreT>({
   postId: 0,
   items: [],
   resources: [],
-	weeksInfo: {},
+  weeksInfo: {},
 });
 
-export const PostData = atom<AimClipListPost, [{data:AimClipListPost, fromDb?:boolean}], void>(
+export const PostData = atom<AimClipListPost, [{ data: AimClipListPost, fromDb?: boolean }], void>(
   (get) => get(AppStore)?.post,
-  (get, set, {data, fromDb=false}) => {
+  (get, set, { data, fromDb = false }) => {
     set(AppStore, {
       ...get(AppStore),
       post: data,
     });
-    if(!fromDb){
+    if (!fromDb) {
       set(AppDataDirty, !fromDb);
     }
   }
@@ -52,39 +52,39 @@ export const PostData = atom<AimClipListPost, [{data:AimClipListPost, fromDb?:bo
 
 export const PostId = atom<number | string, [(number | string), boolean], void>(
   (get) => get(AppStore)?.postId,
-  (get, set, updatedPostId, fromDb=false) => {
+  (get, set, updatedPostId, fromDb = false) => {
     set(AppStore, {
       ...get(AppStore),
       postId: updatedPostId,
     });
-    if(!fromDb){
+    if (!fromDb) {
       set(AppDataDirty, !fromDb);
     }
   }
 );
 
-export const Resources = atom<AimClipListResources[], [{data:AimClipListResources[], fromDb?:boolean|undefined}], void>(
+export const Resources = atom<AimClipListResources[], [{ data: AimClipListResources[], fromDb?: boolean | undefined }], void>(
   (get) => get(AppStore)?.resources,
-  (get, set, {data, fromDb=false}) => {
+  (get, set, { data, fromDb = false }) => {
     set(AppStore, {
       ...get(AppStore),
       resources: data,
     });
-    if(!fromDb){
+    if (!fromDb) {
       set(AppDataDirty, !fromDb);
     }
   }
 );
 
-export const ListItems = atom<ClipListMetaItem[], [{data:ClipListMetaItem[], fromDb?:boolean|undefined}], void>(
+export const ListItems = atom<ClipListMetaItem[], [{ data: ClipListMetaItem[], fromDb?: boolean | undefined }], void>(
   (get) => get(AppStore)?.items,
-  (get, set, {data, fromDb=false}) => {
-    console.log("commiting to store",data)
+  (get, set, { data, fromDb = false }) => {
+    console.log("commiting to store", data)
     set(AppStore, {
       ...get(AppStore),
       items: data,
     });
-    if(!fromDb){
+    if (!fromDb) {
       set(AppDataDirty, !fromDb);
     }
   }
@@ -98,20 +98,27 @@ export const AppDataDirty = atom<boolean>(false);
 export const AppLocation = atom<string>('videos');
 
 export type WeekInfoType = {
-  intro: string;
+	week_index: string;
+  emails: {
+    email: string; // 'week_1_clips_for_this_week'
+    kind: 'clipList' | 'textBased';
+    textContent: string;
+    sendTime: string; // day of week ( '1', '2' ,'3'...) 0=Sunday, 1=Monday
+  }[];
 }
+
 type WeekInfoRecords = Record<number, WeekInfoType>;
 
 
-export const WeekInfo = atom<WeekInfoRecords, [{data:WeekInfoRecords, fromDb?:boolean}], void>(
-	(get)=>get(AppStore).weeksInfo,
-	(get, set, {data, fromDb=false}) => {
-		set(AppStore, {
-			...get(AppStore),
-			weeksInfo: data,
-		});
-		if(!fromDb){
-			set(AppDataDirty, !fromDb);
-		}
-	}
+export const WeekInfo = atom<WeekInfoRecords, [{ data: WeekInfoRecords, fromDb?: boolean }], void>(
+  (get) => get(AppStore).weeksInfo,
+  (get, set, { data, fromDb = false }) => {
+    set(AppStore, {
+      ...get(AppStore),
+      weeksInfo: data,
+    });
+    if (!fromDb) {
+      set(AppDataDirty, !fromDb);
+    }
+  }
 );

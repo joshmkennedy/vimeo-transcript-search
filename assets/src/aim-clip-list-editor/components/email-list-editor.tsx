@@ -21,12 +21,13 @@ import { useState, type FormEvent } from "react";
 import { useAPI } from "../hooks/useAPI";
 
 const WEEKS = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6", "Week 7", "Week 8", "Week 9", "Week 10", "Week 11", "Week 12", "Week 13", "Week 14"];
+
 export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { activeWeek: number, setActiveWeek: (week: number) => void, videos: AiVimeoResult[] }) {
   const [, setAppState] = useAtom(AppState);
   const [appResources, setResources] = useAtom(Resources);
   const api = useAPI();
-  const videosByWeek = Object.groupBy(videos, v => v.week_index ?? -1);
 
+  const videosByWeek = Object.groupBy(videos, v => v.week_index ?? -1);
   const resourcesByWeek = Object.groupBy(appResources ?? [], v => v.week_index ?? -1);
 
   async function previewEmail(weekIndex: number) {
@@ -75,7 +76,9 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
               <p className="text-lg font-bold">Week {i + 1}</p>
               <Button variant="secondary" onClick={() => previewEmail(weekIndex)}>Preview Email</Button>
             </header>
+
             <WeekInfoEditor weekIndex={weekIndex} />
+
             {videosByWeek[weekIndex] && videosByWeek[weekIndex].length > 0 ? (
               <>
                 <VideosInWeek weekIndex={weekIndex} videos={videosByWeek[weekIndex]} />
@@ -100,7 +103,7 @@ function VideosInWeek({ weekIndex, videos, }: { weekIndex: number, videos: AiVim
 function ResourcesInWeek({ weekIndex, resources }: { weekIndex: number, resources: AimClipListResources[] }) {
   return <div className="flex flex-col gap-2">
     {resources.map(resource => {
-      return <div>
+      return <div key={resource.link}>
         <a
           className="text-blue-800 no-underline hover:text-blue-600 font-bold text-base px-2 py-1"
           href={resource.link}
@@ -245,22 +248,35 @@ function VideoInWeekTypeOptions({ value }: { value: string | undefined }) {
   </Select>
 }
 
+const defaultWeekInfo = (weekIndex: number) => ({
+  week_index: `week_${weekIndex}`,
+  emails: [
+    {
+      email: `week_${weekIndex}_videos_for_this_week`,
+      kind: 'clipList' as const,
+      textContent: 'Write the introduction to this weeks videos here',
+      sendTime: '1', // send on the following Monday,
+    },
+  ],
+});
+
 export function WeekInfoEditor({ weekIndex }: { weekIndex: number }) {
   const [weekInfo, setWeekInfo] = useAtom(WeekInfo);
-  const [localWeekInfo, setLocalWeekInfo] = useState(weekInfo[weekIndex] ?? {
-    intro: "",
-  });
 
-  function saveWeekInfo(weekIndex: number, updatedInfo: Partial<WeekInfoType> & { intro: string }) {
+	const week = weekInfo[weekIndex] ?? defaultWeekInfo(weekIndex);
+
+  const [localEmailInfo, setLocalEmailInfo] = useState(week.emails[0]!);
+
+  function saveWeekInfo(weekIndex: number, updatedInfo: Partial<WeekInfoType['emails'][number]>) {
     const copy = { ...weekInfo };
-    copy[weekIndex] = { ...copy[weekIndex], ...updatedInfo };
+    copy[weekIndex] = { ...week, emails: [{...week.emails[0], ...updatedInfo }] } as WeekInfoType;
     setWeekInfo({
       data: copy,
     })
   }
   return <form
     className="flex flex-col gap-2 p-2 bg-neutral-50/20 rounded-md "
-    onSubmit={(e) => { e.preventDefault(); saveWeekInfo(weekIndex, localWeekInfo); }}
+    onSubmit={(e) => { e.preventDefault(); saveWeekInfo(weekIndex, localEmailInfo); }}
   >
     <div className="flex flex-row items-center gap-2 justify-end">
       <Button onClick={() => toast.error("Not Implemented Yet")} className="bg-purple-50 text-purple-800 hover:bg-purple-100 hover:text-purple-900 ">
@@ -273,8 +289,8 @@ export function WeekInfoEditor({ weekIndex }: { weekIndex: number }) {
       <textarea
         placeholder="Week Intro"
         className="rounded-sm w-full md:text-lg border-1 border-neutral-200 focus-visible:border-transparent h-auto font-medium focus-visible:ring-4 focus-visible:ring-blue-200/35"
-        value={localWeekInfo.intro}
-        onChange={(e) => setLocalWeekInfo({ ...localWeekInfo, intro: e.target.value })}
+        value={localEmailInfo.textContent}
+        onChange={(e) => setLocalEmailInfo({ ...localEmailInfo, textContent: e.target.value })}
       ></textarea>
     </FormInput>
   </form>

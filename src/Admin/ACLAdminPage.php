@@ -75,7 +75,7 @@ class ACLAdminPage {
             ],
             'previewList' => is_array($list) ? VimeoInfoVideoList::getVideoInfoSet($list) : [],
             'resources' => $resources,
-            'weeksInfo' => $this->meta->getWeeksInfo($id),
+            'weeksInfo' => $this->meta->getWeeksForEditor($id),
             // add taxonomy terms
             // add 
         ]);

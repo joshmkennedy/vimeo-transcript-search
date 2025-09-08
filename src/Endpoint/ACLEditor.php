@@ -78,6 +78,7 @@ class ACLEditor {
             ],
             'items' => $items,
             'resources' => $resources,
+            'weeksInfo' => $this->meta->getWeeksForEditor($postId),
         ]);
     }
 
@@ -144,11 +145,20 @@ class ACLEditor {
             error_log("body is empty");
             return new \WP_Error('invalid_body', 'Request body is missing or invalid.', ['status' => 400]);
         }
-        $postId = $body['postId'];
+        $postId = (int)$body['postId'];
         $items = $body['items'];
         $post = $body['post'];
         $resources = $body['resources'] ?? [];
-        $weeksInfo = $body['weeksInfo'] ?? [];
+        $weeksInfo = [];
+        try{
+        $weeksInfo = $this->meta->normalizeWeeksFromEditor(
+            $body['weeksInfo'] ?? $this->meta->getWeeksForEditor($postId),
+        );
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            return new \WP_Error('invalid_weeks', $e->getMessage(), ['status' => 400]);
+        }
+
 
         $this->log()->info("updating post");
         $error = wp_update_post([

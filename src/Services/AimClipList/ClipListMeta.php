@@ -43,11 +43,99 @@ class ClipListMeta {
         return get_post_meta($postId, self::resourcesKey, true) ?? [];
     }
 
+    public function getWeeksForEditor(int|null $postId) {
+        $weeks = $this->getWeeksInfo($postId);
+        $weeksForEditor = [];
+        foreach ($weeks as $week) {
+            $weeksForEditor[$this->getWeekIdx($week['week_index'])] = $week;
+        }
+        return $weeksForEditor;
+    }
+
+    /**
+     * Make sure thate the shape is correct and build the linked list of emails
+     *   //[int=>weekinfo]
+     **/
+    public function normalizeWeeksFromEditor($weeksFromEditor): array {
+        $weeks = [];
+        foreach ($weeksFromEditor as $weekidx => $weekInfo) {
+            $slug = $this->getWeekSlug($weekInfo['week_index'] ?? null);
+            if (!$slug) {
+                error_log("week_index is missing");
+                throw new \Exception("week_index is missing");
+            }
+            $emails = [];
+            foreach ($weekInfo['emails'] as $idx => $email) {
+                if (!isset($email['email'])) {
+                    error_log("email is missing");
+                    throw new \Exception("email name is missing");
+                }
+                if (!is_string($email['email']) || !str_starts_with($email['email'], $slug)) {
+                    error_log("email name is corrupt");
+                    throw new \Exception("email name is corrupt, {$email['email']}");
+                }
+                if (!isset($email['kind'])) {
+                    throw new \Exception("email kind is missing");
+                }
+                if ($email['kind'] !== 'clipList' && $email['kind'] !== 'textBased') {
+                    throw new \Exception("email kind is corrupt, {$email['kind']}");
+                }
+                if (!isset($email['textContent'])) {
+                    error_log("email textContent is missing");
+                    throw new \Exception("email textContent is missing");
+                }
+                if($email['textContent'] === 'Write the introduction to this weeks videos here!') {
+                    error_log("email textContent is was left as the default");
+                    throw new \Exception("email textContent is was left as the default, week {$weekidx} email {$idx}");
+                }
+                if (
+                    !isset($email['sendTime'])
+
+                ) {
+                    error_log("email is missing sendTime");
+                    throw new \Exception("email is missing sendTime");
+                }
+                if (!is_numeric($email['sendTime'])) {
+                    error_log("email sendTime is corrupt");
+                    throw new \Exception("email sendTime is corrupt, {$email['sendTime']}");
+                }
+
+                if ($idx < count($weekInfo['emails']) - 1) {
+                    $nextEmail = $weekInfo['emails'][$idx + 1]['email'];
+                } elseif ($weekidx < count($weeksFromEditor) /* no -1 as this 1 index based*/) {
+                    $nextWeek = $weeksFromEditor[$weekidx + 1];
+                    $nextEmail = $nextWeek['emails'][0]['email'];
+                } else {
+                    $nextEmail = 'last';
+                }
+                $email['next_email'] = $nextEmail;
+
+                $emails[] = $email;
+            }
+            if (
+                count($weeks) &&
+                $weeks[count($weeks) - 1]['emails'][count($weeks[count($weeks) - 1]['emails']) - 1]['next_email'] === null &&
+                count($weekInfo['emails'])
+            ) {
+                $weeks[count($weeks) - 1]['emails'][count($weeks[count($weeks) - 1]['emails']) - 1]['next_email'] = $weekInfo['emails'][0]['email'];
+            }
+
+            $weeks[] = [
+                'week_index' => $weekInfo['week_index'],
+                'emails' => $emails,
+            ];
+            unset($emails);
+        }
+        return $weeks;
+    }
+
+
     public function getWeeksInfo(int|null $postId) {
         if (!$postId) {
-            return [];
+            return $this->getWeeksInfoDefaults();
         }
-        return get_post_meta($postId, self::weeksInfoKey, true) ?? $this->getWeeksInfoDefaults();
+        $meta = get_post_meta($postId, self::weeksInfoKey, true);
+        return is_array($meta) ? $meta : $this->getWeeksInfoDefaults();
     }
 
     // TODO: Improve the extendablility of this
@@ -181,6 +269,12 @@ class ClipListMeta {
                                 'email' => [
                                     'type' => 'string', // email name (week_1_videos_for_this_week, week_1_reminders)
                                 ],
+                                'kind' => [
+                                    'type' => 'string', // cliplist or text_based
+                                ],
+                                'textContent' => [
+                                    'type' => 'string', // text content for the email
+                                ],
                                 'sendTime' => [
                                     'type' => 'string', // day of week ( 1, 2 ,3...) 0=Sunday, 1=Monday
                                 ],
@@ -208,14 +302,18 @@ class ClipListMeta {
         $emails = [
             [
                 'email' => 'week_' . $weekIndex . '_videos_for_this_week',
+                'kind' => 'clipList',
+                'textContent' => 'Write the introduction to this weeks videos here',
                 'sendTime' => '1', // send on the following Monday,
                 'next_email' => 'week_' . $weekIndex . '_reminders',
             ],
-            [
-                'email' => 'week_' . $weekIndex . '_reminders',
-                'sendTime' => '3', // send on the following Wednesday,
-                'next_email' => $nextEmail,
-            ],
+            // [
+            //     'email' => 'week_' . $weekIndex . '_reminders',
+            //     'kind' => 'textBased',
+            //     'textContent' => 'Write the reminders for this weeks videos here',
+            //     'sendTime' => '3', // send on the following Wednesday,
+            //     'next_email' => $nextEmail,
+            // ],
         ];
         return $emails;
     }
@@ -237,8 +335,19 @@ class ClipListMeta {
         return null;
     }
 
+    // TODO use $this->getEmailInfo
     public function getNextEmail(int $listId, string $emailName) {
-        $weekIdx = $this->getWeekIdx($emailName);
+        $emailInfo = $this->getEmailInfo($listId, $emailName);
+        if (!$emailInfo) {
+            return null;
+        }
+        $nextEmail = $emailInfo['next_email'];
+
+        return $nextEmail;
+    }
+
+    public function getEmailInfo(int $listId, string $emailName) {
+        $weekIdx = $this->getWeekSlug($emailName);
         if (!$weekIdx) {
             return null;
         }
@@ -248,17 +357,11 @@ class ClipListMeta {
         if (!isset($weekInfo[$key]) || !isset($weekInfo[$key]['emails'])) {
             return null;
         }
-
         $email = array_find($weekInfo[$key]['emails'], fn($email) => $email['email'] === $emailName);
-        if (!$email) {
-            return null;
-        }
-        $nextEmail = $email['next_email'];
-
-        return $nextEmail;
+        return $email;
     }
 
-    private function getWeekIdx(string $emailName) {
+    private function getWeekSlug(string $emailName) {
         if (strpos($emailName, 'week_') !== 0) {
             error_log("Email name $emailName does not start with week_");
             return null;
@@ -269,5 +372,12 @@ class ClipListMeta {
             return null;
         }
         return $matches[1];
+    }
+    public function getWeekIdx(string $emailName) {
+        $weekSlug = $this->getWeekSlug($emailName);
+        if (!$weekSlug) {
+            return null;
+        }
+        return (int)str_replace('week_', '', $weekSlug);
     }
 }

@@ -19,6 +19,6 @@ class AimClipListJobs {
     }
 
     private function scheduleSendEmailAction() {
-        $this->scheduledJobs->scheduleRecurring(time(), WEEK_IN_SECONDS, self::SEND_EMAILS_ACTION);
+        $this->scheduledJobs->scheduleRecurring(time(), DAY_IN_SECONDS, self::SEND_EMAILS_ACTION);
     }
 }

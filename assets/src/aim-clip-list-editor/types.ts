@@ -34,3 +34,4 @@ export type AimClipListResources = {
   label: string,
   week_index: number,
 }
+

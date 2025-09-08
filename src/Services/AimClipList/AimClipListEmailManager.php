@@ -39,7 +39,7 @@ class AimClipListEmailManager {
         foreach ($config as $listId => $emails) {
             foreach ($emails as $emailName => $users) {
                 // @see the getSubscribedUsers method for what the user object looks like
-                foreach ($users as $userId => $user) { 
+                foreach ($users as $userId => $user) {
                     $user = (array)$user;
                     $emailAddress = $user['user_email'];
                     if (!$emailAddress) {
@@ -47,13 +47,40 @@ class AimClipListEmailManager {
                         continue;
                     }
                     $clEmail = null;
-                    if (array_key_exists("$listId:$emailName", $this->cache) && isset($this->cache["$listId:$emailName"])) {
+                    if (
+                        array_key_exists("$listId:$emailName", $this->cache)
+                        && isset($this->cache["$listId:$emailName"])
+                    ) {
+                        /** @var ClipListEmail $clEmail */
                         $clEmail = $this->cache["$listId:$emailName"];
                     } else {
                         $clEmail = new ClipListEmail($listId, $emailName);
                         $this->cache["$listId:$emailName"] = $clEmail;
                     }
-                    $config = $clEmail->generateEmailContent($emailAddress);
+
+                    $emailInfo = $this->meta->getEmailInfo($listId, $emailName);
+                    if (!$emailInfo) {
+                        error_log("No email info for user $listId:$emailName");
+                        continue;
+                    }
+                    $lastSent = $this->userMeta->getLastEmailSentForList($userId, $listId);
+
+                    $shouldSend = self::isEmailDue(
+                        $lastSent ? strtotime($lastSent[1]) : null,
+                        preg_match('/week_(\d+)/', $lastSent[0] ?? '', $matches) ? $matches[1] : "",
+                        (int)$emailInfo['sendTime'],
+                        preg_match('/week_(\d+)/', $emailName, $matches) ? $matches[1] : "",
+                        time()
+                    );
+
+                    if (!$shouldSend) {
+                        continue;
+                    }
+
+                    $config = $emailInfo['kind']== 'clipList' 
+                        ? $clEmail->generateClipListEmail($emailAddress)
+                        : $clEmail->generateTextBasedEmail($emailAddress);
+
                     $args = [
                         $listId,
                         $emailName,
@@ -111,7 +138,7 @@ class AimClipListEmailManager {
             if (!isset($lists[$listId])) {
                 $lists[$listId] = [];
             }
-            if(!isset($lists[$listId][$user['next_email']])) {
+            if (!isset($lists[$listId][$user['next_email']])) {
                 $lists[$listId][$user['next_email']] = [];
             }
             $lists[$listId][$user['next_email']][$user['ID']] = $user;
@@ -150,5 +177,52 @@ class AimClipListEmailManager {
         );
 
         return $wpdb->get_results($prepared);
+    }
+
+    /**
+     * TODO:
+     * I hate this and Im not sure if it works.
+     * There has got to be a better way
+     ***/
+    public static function isEmailDue(
+        ?int $lastSendTime,
+        string $lastSendWeekIndex,
+        int $emailToSendDay,
+        string $emailToSendWeek,
+        int $now,
+    ) {
+
+        $dow = date('w', $now);
+        $dowInt = (int)$dow;
+
+        if ($lastSendTime === null) {
+            if (date('w', $dowInt) >= $emailToSendDay) {
+                return true;
+            }
+        }
+
+        if ($dowInt == $emailToSendDay && strtotime("+1 week", $lastSendTime) <= $now) {
+            return true;
+        }
+        // we a week past the last email
+        if (
+            (int)date('w', $lastSendTime) >= $emailToSendDay &&
+            $dowInt > $emailToSendDay
+            && $lastSendWeekIndex === $emailToSendWeek
+        ) {
+            return true;
+        }
+
+        if ($dowInt >= $emailToSendDay && strtotime("+1 week", $lastSendTime) <= $now) {
+            return true;
+        }
+
+        if ((int)$emailToSendWeek > (int)$lastSendWeekIndex) {
+            $sttotime = "Next Sunday +{$emailToSendDay} days";
+        } else {
+            $sttotime = "Last Sunday +{$emailToSendDay} days";
+        }
+        $dueOn = strtotime($sttotime, $lastSendTime);
+        return $now >= $dueOn;
     }
 }
