@@ -2,12 +2,15 @@
 
 namespace Jk\Vts\Forms;
 
+use Illuminate\Support\Collection;
 use Jk\Vts\Services\AimClipList\AimClipListEmailManager;
 use Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail;
 use Jk\Vts\Services\AimClipList\AimClipListUserMeta;
 use Jk\Vts\Services\AimClipList\ClipListMeta;
+use Jk\Vts\Services\Logging\LoggerTrait;
 
 class ClipListSignUp {
+    use LoggerTrait;
 
     const successPage = 'aim-100-days-registered';
     private AimClipListUserMeta $userMeta;
@@ -34,20 +37,37 @@ class ClipListSignUp {
         // this is a hack, but it works.
         global $clipListRegistrationId;
 
-        $score = collect($field_data)->map(fn($field) => $field['value'])->reduce(fn($acc, $value) => $acc + $value);
-        $highestScore = count($field_data) * 3;
+
+        $values = Collection::make($field_data)->map(fn($field) => $field['value'])->reject(fn($value) => !is_numeric($value) || $value > 5);
+        $this->log()->info("values: " . print_r($values->implode(value:fn($v)=>$v,glue: ', '), true));
+        $score = $values->sum();
+
+        if($score>20){
+            $this->log()->error("$score: Score too high");
+            return;
+        }
+
+        $highestScore = $values->count() * 3 + 1;
+
         $category = match (true) {
             $highestScore * .66 <= $score => "advanced",
             $highestScore * .33 <= $score => "intermediate",
             default => "beginner",
         };
 
+        $this->log()->info("score: $score");
+        $this->log()->info("highestScore: $highestScore");
+        $this->log()->info("category: $category");
         // register the user for the cliplist that goes with their category.
         $listId = $this->getListIdFromCategory($category, $entry->form_id);
         if(!$listId){
             return;
         }
 
+        if($this->userMeta->hasSubscribedList($user->ID, $listId)){
+            $this->log()->info("User already subscribed to list");
+            return;
+        }
         $this->userMeta->addSubscribedList($user->ID, $listId);
 
         // send the user a success email.

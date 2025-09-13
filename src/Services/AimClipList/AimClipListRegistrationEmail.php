@@ -22,9 +22,13 @@ class AimClipListRegistrationEmail {
         $this->scheduledJobs = new ScheduledJobs();
     }
 
-    public function scheduleRegistrationEmail(int $listId, $userId) {
+    public function scheduleRegistrationEmail(int $listId, int $userId) {
         $defaultEmailContent = $this->getDefaultEmailContent();
-        $this->scheduledJobs->scheduleOnce(time(), self::SEND_EMAIL_ACTION, [$listId, $userId, $defaultEmailContent]);
+        $this->scheduledJobs->scheduleOnce(time(), self::SEND_EMAIL_ACTION, [
+            $listId,
+            $userId,
+            $defaultEmailContent,
+        ]);
     }
 
     public function sendEmail(int $listId, int $userId, string $content) {

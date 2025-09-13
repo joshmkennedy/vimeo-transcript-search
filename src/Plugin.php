@@ -186,13 +186,17 @@ class Plugin {
         );
         // send queued clip list email
         add_action(
-            \Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail::SEND_EMAIL_ACTION,
-            [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'sendEmail']
+            \Jk\Vts\Services\AimClipList\AimClipListEmailManager::SEND_QUEUED_EMAILS_ACTION,
+            [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'sendEmail'],
+            10,
+            3
         );
         // send queued registration email
         add_action(
             \Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail::SEND_EMAIL_ACTION,
-            [new \Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail($this->path, $this->url), 'sendEmail']
+            [new \Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail($this->path, $this->url), 'sendEmail'],
+            10,
+            3
         );
 
         //** FORMS **
@@ -204,17 +208,5 @@ class Plugin {
             10,
             3
         );
-
-
-        // add_action(
-        //     'init',
-        //     function () {
-        //         if (class_exists('Forminator_Integration_Loader')) {
-        //             require_once 'Forms/ForminatorAddon.php';
-        //             \Forminator_Integration_Loader::get_instance()->register(\Forminator_AIMAddon::class);
-        //             // error_log(print_r([\Forminator_Integration_Loader::get_instance()->get_addons()], true));
-        //         }
-        //     }
-        // );
     }
 }

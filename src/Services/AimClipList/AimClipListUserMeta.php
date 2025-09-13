@@ -20,7 +20,7 @@ class AimClipListUserMeta {
     }
 
     public function addSubscribedList($userId, int $list) {
-        $lists = $this->getSubscribedLists($userId);
+        $lists = $this->getSubscribedLists($userId) ?: [];
         if (! array_key_exists($list, $lists) || $lists[$list] === false) {
             $lists[$list] = true;
             $this->setSubscribedList($userId, $lists);
@@ -37,6 +37,10 @@ class AimClipListUserMeta {
         return $lists;
     }
 
+    public function hasSubscribedList(int $userId, int $list) {
+        $lists = $this->getSubscribedLists($userId);
+        return array_key_exists($list, $lists) && $lists[$list] === true;
+    }
 
 
     public function getReceivedEmails($userId) {
