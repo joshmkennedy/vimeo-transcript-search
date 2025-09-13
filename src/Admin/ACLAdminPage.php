@@ -24,6 +24,22 @@ class ACLAdminPage {
     public function registerPostType() {
         $config = require_once $this->pluginPath . '/src/Config/aim-clip-list-post-type.php';
         register_post_type(self::SLUG, $config['args']);
+        $categoryConfig = require_once $this->pluginPath . '/src/Config/aim-clip-list-category.php';
+        register_taxonomy(
+            $categoryConfig['slug'],
+            self::SLUG,
+            $categoryConfig['args']
+        );
+
+        register_meta('post', $this->meta::formId, [
+            'type' => 'number',
+            'show_in_rest' => true,
+            'single' => true,
+            'auth_callback' => function () {
+                return current_user_can('edit_posts');
+            },
+        ]);
+
         register_meta('post', $this->meta::metaKey, [
             'type' => 'array',
             'show_in_rest' => [
@@ -34,6 +50,7 @@ class ACLAdminPage {
                 return current_user_can('edit_posts');
             },
         ]);
+
         register_meta('post', $this->meta::resourcesKey, [
             'type' => 'array',
             'show_in_rest' => [
@@ -44,6 +61,7 @@ class ACLAdminPage {
                 return current_user_can('edit_posts');
             },
         ]);
+
         register_meta('post', $this->meta::weeksInfoKey, [
             'type' => 'array',
             'show_in_rest' => [
@@ -59,12 +77,22 @@ class ACLAdminPage {
     public function enqueueAsset(): void {
         global $post, $current_screen;
         if ($current_screen->base != "admin_page_edit-" . self::SLUG) return;
+
         $id = isset($post) && isset($post->ID) ? $post->ID : (
             isset($_GET['post_id']) ? $_GET['post_id'] : 0
         );
-        $handle = $this->assets->use('assets/src/aim-clip-list-editor.ts');
+
+
         $list = $this->meta->getItems($id);
         $resources = $this->meta->getResources($id);
+        $category = get_the_terms($id, 'aim-clip-list-category');
+        if ($category && is_array($category) && count($category) > 0) {
+            $category = $category[0]->term_id;
+        } else {
+            $category = get_term_by('slug', 'beginner', 'aim-clip-list-category')?->term_id ?? 74;
+        }
+
+        $handle = $this->assets->use('assets/src/aim-clip-list-editor.ts');
         wp_localize_script($handle, 'vtsACLEditor', [
             'nonce' => wp_create_nonce('wp_rest'),
             'apiUrl' => get_rest_url(path: '/vts/v1/aim-clip-list-editor'),
@@ -76,8 +104,9 @@ class ACLAdminPage {
             'previewList' => is_array($list) ? VimeoInfoVideoList::getVideoInfoSet($list) : [],
             'resources' => $resources,
             'weeksInfo' => $this->meta->getWeeksForEditor($id),
-            // add taxonomy terms
-            // add 
+            'formId' => $this->meta->getFormId($id),
+            'category' => $category,
+            'clipListCategories' => get_terms( ['taxonomy'=>'aim-clip-list-category','hide_empty' => false, 'fields'=>'id=>name']),
         ]);
     }
 

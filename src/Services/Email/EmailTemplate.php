@@ -266,7 +266,7 @@ class EmailTemplate {
             </td>
         </tr>
 
-        <?php $this->footerMarkup($config['opt_out_user_link']); ?>
+        <?php $this->footerMarkup(isset($config['opt_out_user_link']) ? $config['opt_out_user_link'] : null); ?>
 
     <?php return ob_get_clean();
     }
@@ -283,7 +283,9 @@ class EmailTemplate {
         <tr>
             <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
                 <p>You are receiving this email because you have opted in to receive emails from Ai Marketing Academy on a currated learning path.</p>
-                <p style="margin:0 0 10px;"><a href="<?= $stoplink; ?>" style="color:#333333;">Stop getting this learning path through email.</a></p>
+                <?php if ($stoplink): ?>
+                    <p style="margin:0 0 10px;"><a href="<?= $stoplink; ?>" style="color:#333333;">Stop getting this learning path through email.</a></p>
+                <?php endif; ?>
 
             </td>
         </tr>

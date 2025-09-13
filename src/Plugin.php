@@ -178,9 +178,43 @@ class Plugin {
             'init',
             [new \Jk\Vts\Actions\AimClipListJobs($this->path, $this->url), 'scheduleActions']
         );
+
+        // queue clip list emails
         add_action(
             \Jk\Vts\Actions\AimClipListJobs::SEND_EMAILS_ACTION,
             [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'queueEmails']
         );
+        // send queued clip list email
+        add_action(
+            \Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail::SEND_EMAIL_ACTION,
+            [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'sendEmail']
+        );
+        // send queued registration email
+        add_action(
+            \Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail::SEND_EMAIL_ACTION,
+            [new \Jk\Vts\Services\AimClipList\AimClipListRegistrationEmail($this->path, $this->url), 'sendEmail']
+        );
+
+        //** FORMS **
+        // Clip list signup quiz evaluation and signup.
+        //
+        add_action(
+            'forminator_custom_form_submit_before_set_fields',
+            [new \Jk\Vts\Forms\ClipListSignUp($this->path, $this->url), 'handleQuizSubmission'],
+            10,
+            3
+        );
+
+
+        // add_action(
+        //     'init',
+        //     function () {
+        //         if (class_exists('Forminator_Integration_Loader')) {
+        //             require_once 'Forms/ForminatorAddon.php';
+        //             \Forminator_Integration_Loader::get_instance()->register(\Forminator_AIMAddon::class);
+        //             // error_log(print_r([\Forminator_Integration_Loader::get_instance()->get_addons()], true));
+        //         }
+        //     }
+        // );
     }
 }

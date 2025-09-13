@@ -21,7 +21,7 @@ type EditorHeaderProps = {
     onClick: () => void;
   }[];
 };
-export function EditorHeader({ menuItems }: EditorHeaderProps) {
+export function EditorHeader({ menuItems}: EditorHeaderProps) {
   const api = useAPI()
   const [isDirty, setIsDirty] = useAtom(AppDataDirty);
   const [appStore, setAppStore] = useAtom(AppStore);

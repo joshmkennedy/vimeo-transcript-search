@@ -100,7 +100,7 @@ class AimClipListUserMeta {
         delete_user_meta($userId, $this->getNextEmailKey($listId));
     }
 
-    public function setNextEmailForList(int $userId, int $listId, int $weekIndex) {
-        update_user_meta($userId, $this->getNextEmailKey($listId), $weekIndex);
+    public function setNextEmailForList(int $userId, int $listId, string $emailName) {
+        update_user_meta($userId, $this->getNextEmailKey($listId), $emailName);
     }
 }

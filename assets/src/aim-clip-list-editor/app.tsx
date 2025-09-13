@@ -14,6 +14,7 @@ import { ListItemEditor } from "./components/list-item-editor";
 import { useAPI } from "./hooks/useAPI";
 import { Page } from "./components/page";
 import { AimEmailListEditor } from "./components/email-list-editor";
+import { MetaEditor } from "./components/meta-editor";
 
 type AppProps = {
   apiUrl: string;
@@ -24,6 +25,9 @@ type AppProps = {
   previewList: Record<string, Omit<AiVimeoResult, keyof ClipListMetaItem>>;
   resources: AimClipListResources[];
 	weeksInfo: Record<number, WeekInfoType>;
+	formId: number;
+	category: number;
+	clipListCategories: Record<number, string>;
 }
 
 function App({
@@ -35,6 +39,9 @@ function App({
   items,
   resources,
 	weeksInfo = {},
+	formId,
+	category,
+	clipListCategories,
 }: AppProps) {
   const [store, setAppStore] = useAtom(AppStore);
   const [, setAPI] = useAtom(API);
@@ -47,7 +54,7 @@ function App({
       url: apiUrl,
       nonce: nonce,
     });
-    setAppStore({ post, postId, items, resources, weeksInfo });
+    setAppStore({ post, postId, items, resources, weeksInfo, formId, category });
   }, [apiUrl, nonce]);
 
   function upgradeToEditPost(postId: number) {
@@ -77,8 +84,15 @@ function App({
   }, [_items, previewList]);
 
   const [showingUploadCsv, setShowingUploadCsv] = useState(!(items?.length && items.length > 0));
+	const [showingMetaEditor, setShowingMetaEditor] = useState(false);
 
   const menuItems = [
+		{
+			label: "Edit Clip List Meta",
+			onClick: () => {
+				setShowingMetaEditor(s => !s);
+			},
+		},
     {
       label: showingUploadCsv ? 'Hide Uploader' : 'Upload CSV',
       onClick: () => {
@@ -156,6 +170,7 @@ function App({
   return <>
     <div className="max-w-[2000px] bg-white p-4 lg:p-8 xl:p-12 xl:py-8 rounded-lg shadow-sm border-neutral-200 border flex flex-col gap-6 items-start">
       <EditorHeader menuItems={menuItems} />
+			<MetaEditor categories={clipListCategories} setShowing={setShowingMetaEditor} isShowing={showingMetaEditor} />
       <UploadVideoCsv isShowing={showingUploadCsv} onUpload={upgradeToEditPost} setShowing={setShowingUploadCsv} />
       <Page slug={'videos'}>
         <div className="flex flex-row items-start justify-between w-full ">

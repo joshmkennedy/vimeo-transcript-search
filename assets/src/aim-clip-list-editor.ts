@@ -12,5 +12,8 @@ window.addEventListener("DOMContentLoaded", () => {
     post: window.vtsACLEditor.post,
     resources: window.vtsACLEditor.resources ?? [],
     weeksInfo: window.vtsACLEditor.weeksInfo ?? {},
+    formId: window.vtsACLEditor.formId ?? 19902,
+    category: window.vtsACLEditor.category ?? 74,
+    clipListCategories: window.vtsACLEditor.clipListCategories ?? {}
   });
 });

@@ -14,6 +14,9 @@ declare global {
       previewList: any;
       resources: any;
       weeksInfo:any;
+      formId:any;
+      category: any;
+      clipListCategories: any;
     };
     vtsPublic: {
       nonce: string;

@@ -65,11 +65,27 @@ class ACLEditor {
         }
         $weeksInfo = $this->meta->getWeeksInfo($postId);
 
+        $formId = $this->meta->getFormId($postId);
+
+        $category = get_the_terms($postId, 'aim-clip-list-category');
+        if ($category && is_array($category) && count($category) > 0) {
+            $category = $category[0]->term_id;
+        } else {
+            $category = get_term_by('slug', 'beginner', 'aim-clip-list-category')?->term_id ?? 74;
+        }
+
         $this->log()->info("saving meta");
-        $error = $this->meta->save($postId, $items, $resources, $weeksInfo);
+        $error = $this->meta->save($postId, $items, $resources, $weeksInfo, $formId ?? 19902);
         if (is_wp_error($error)) {
             return rest_ensure_response($error);
         }
+
+        $this->log()->info("saving category");
+        $res = wp_set_post_terms($postId, [$category], 'aim-clip-list-category', false);
+        if (is_wp_error($res)) {
+            return rest_ensure_response($res);
+        }
+
         $this->log()->info("sending data");
         return rest_ensure_response([
             'postId' => $postId,
@@ -79,6 +95,9 @@ class ACLEditor {
             'items' => $items,
             'resources' => $resources,
             'weeksInfo' => $this->meta->getWeeksForEditor($postId),
+
+            'formId' => $this->meta->getFormId($postId),
+            'category' => $category,
         ]);
     }
 
@@ -149,6 +168,14 @@ class ACLEditor {
         $items = $body['items'];
         $post = $body['post'];
         $resources = $body['resources'] ?? [];
+        $formId = $body['formId'] ?? 19902;
+
+        $categoryId = $body['category'] ?? 74;
+        $category = get_term((int)$categoryId,'aim-clip-list-category');
+        if (!$category) {
+           new \WP_Error('invalid_category', 'Category not found', ['status' => 400]);
+        }
+
         $weeksInfo = [];
         try{
         $weeksInfo = $this->meta->normalizeWeeksFromEditor(
@@ -170,7 +197,14 @@ class ACLEditor {
             return rest_ensure_response($error);
         }
         $this->log()->info("saving meta");
-        $this->meta->save($postId, $items, $resources, $weeksInfo);
+        $this->meta->save($postId, $items, $resources, $weeksInfo, $formId);
+
+        $this->log()->info("saving category");
+        $res = wp_set_post_terms($postId, [$category->term_id], 'aim-clip-list-category', false);
+        if (is_wp_error($res)) {
+            return rest_ensure_response($res);
+        }
+
         $this->log()->info("sending data");
         try {
             return rest_ensure_response([
@@ -181,6 +215,9 @@ class ACLEditor {
                 'items' => $this->meta->getItems($postId),
                 'resources' => $this->meta->getResources($postId) ?? [],
                 'weeksInfo' => $this->meta->getWeeksInfo($postId) ?? [],
+                'formId' => $this->meta->getFormId($postId),
+                'category' => $category->term_id,
+
             ]);
         } catch (\Exception $e) {
             error_log($e->getMessage());

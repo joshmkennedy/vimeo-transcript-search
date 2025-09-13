@@ -27,6 +27,8 @@ export type AppStoreT = {
   items: ClipListMetaItem[];
   resources: AimClipListResources[];
   weeksInfo: Record<number, WeekInfoType>;
+	formId: number;
+	category: number;
 };
 
 export const AppStore = atom<AppStoreT>({
@@ -35,6 +37,8 @@ export const AppStore = atom<AppStoreT>({
   items: [],
   resources: [],
   weeksInfo: {},
+	formId: 19902, // aim-100-days
+	category:74, // beginner
 });
 
 export const PostData = atom<AimClipListPost, [{ data: AimClipListPost, fromDb?: boolean }], void>(
@@ -121,4 +125,30 @@ export const WeekInfo = atom<WeekInfoRecords, [{ data: WeekInfoRecords, fromDb?:
       set(AppDataDirty, !fromDb);
     }
   }
+);
+
+export const Category = atom<number, [{ data: number, fromDb?: boolean }], void>(
+  (get) => get(AppStore).category,
+  (get, set, { data, fromDb = false }) => {
+    set(AppStore, {
+      ...get(AppStore),
+      category: data,
+    });
+    if (!fromDb) {
+      set(AppDataDirty, !fromDb);
+    }
+  }
+);
+
+export const FormId = atom<number, [{ data: number, fromDb?: boolean }], void>(
+	(get) => get(AppStore).formId,
+	(get, set, { data, fromDb = false }) => {
+		set(AppStore, {
+			...get(AppStore),
+			formId: data,
+		});
+		if (!fromDb) {
+			set(AppDataDirty, !fromDb);
+		}
+	}
 );

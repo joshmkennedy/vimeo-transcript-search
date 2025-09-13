@@ -1,5 +1,4 @@
 <?php
-
 namespace Jk\Vts\Services\AimClipList;
 
 use Jk\Vts\Services\Logging\LoggerTrait;
@@ -8,13 +7,14 @@ use Jk\Vts\Services\Logging\LoggerTrait;
 class ClipListMeta {
     use LoggerTrait;
     const metaKey = 'aim-clip-list-items';
+    const formId = 'aim-clip-list-form-id';
     const resourcesKey = 'aim-clip-list-resources';
     const weeksInfoKey = 'aim-clip-list-weeks-info';
 
     public function __construct() {
     }
 
-    public function save(string $postId, array $data, mixed $resources, mixed $weeksInfo) {
+    public function save(string $postId, array $data, mixed $resources, mixed $weeksInfo, int $formId) {
         // error_log(print_r("here: $data", true));
         if ($resources && is_array($resources)) {
             $this->log()->info("saving resources");
@@ -24,9 +24,34 @@ class ClipListMeta {
             $this->log()->info("saving weeks info");
             update_post_meta($postId, self::weeksInfoKey, $weeksInfo);
         }
+
+        if ($formId) {
+            $this->log()->info("saving form id");
+            update_post_meta($postId, self::formId, $formId);
+        }
+
         $this->log()->info("saving items");
         // TODO: make this better when returning errors
+
         return update_post_meta($postId, self::metaKey, $data);
+    }
+
+    public function getFormId(int|null $postId) {
+        if (!$postId) {
+            return 19902;
+        }
+        $formId = get_post_meta($postId, self::formId, true) ;
+        if (!$formId) {
+            return 19902;
+        }
+        return $formId;
+    }
+
+    public function setFormId(int|null $postId, string $formId) {
+        if (!$postId) {
+            return null;
+        }
+        return update_post_meta($postId, self::formId, $formId);
     }
 
     public function getItems(int|null $postId) {
@@ -84,7 +109,7 @@ class ClipListMeta {
                     error_log("email textContent is missing");
                     throw new \Exception("email textContent is missing");
                 }
-                if($email['textContent'] === 'Write the introduction to this weeks videos here!') {
+                if ($email['textContent'] === 'Write the introduction to this weeks videos here!') {
                     error_log("email textContent is was left as the default");
                     throw new \Exception("email textContent is was left as the default, week {$weekidx} email {$idx}");
                 }
@@ -102,7 +127,7 @@ class ClipListMeta {
 
                 if ($idx < count($weekInfo['emails']) - 1) {
                     $nextEmail = $weekInfo['emails'][$idx + 1]['email'];
-                } elseif ($weekidx < count($weeksFromEditor) /* no -1 as this 1 index based*/) {
+                } elseif ($weekidx < count($weeksFromEditor) && isset($weeksFromEditor[$weekidx + 1])) {
                     $nextWeek = $weeksFromEditor[$weekidx + 1];
                     $nextEmail = $nextWeek['emails'][0]['email'];
                 } else {
