@@ -6,6 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { formatTime } from "@/lib/format-time";
 import type { AiVimeoResult } from "../types";
@@ -14,10 +15,10 @@ import toast from "react-hot-toast";
 import { Provider, useAtom } from "jotai";
 import { API, AppState, ListItems, Resources, WeekInfo, type WeekInfoType } from "../store";
 import { FormInput } from "@/components/ui/form-input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EllipsisVertical } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useAPI } from "../hooks/useAPI";
 import { AiRequestManager, MessagesStore as AiRequestManagerMessages, type AiEmail, type AiVideo } from "../ai-request-manager/manager";
 import { Progress } from "@/components/ui/progress";
@@ -31,6 +32,7 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
   const [appResources, setResources] = useAtom(Resources);
   const [apiInfo] = useAtom(API);
   const api = useAPI();
+  const [weekInfo] = useAtom(WeekInfo);
   aiRequestManager.setAPI(apiInfo.url, apiInfo.nonce);
 
   const videosByWeek = Object.groupBy(videos, v => v.week_index ?? -1);
@@ -64,6 +66,7 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
   }
   return <div className="">
     <Button variant="secondary" onClick={buildResources}>Find Resources Weeks</Button>
+    <AddAiSummaryButton weeks={Object.keys(weekInfo).map(Number)} btnText={`Fill in missing Email Intros`} overwrite={false} />
     <Accordion type="single" collapsible onValueChange={(week) => setActiveWeek(Number(week))} value={activeWeek.toString()}>
       {WEEKS.map((week, i) => {
         const weekIndex = i + 1;
@@ -79,7 +82,7 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
             <header className="flex flex-row items-center gap-2 justify-between">
               <p className="text-lg font-bold">Week {i + 1}</p>
               <Button variant="secondary" onClick={() => previewEmail(weekIndex)}>Preview Email</Button>
-              <AddAiSummaryButton weekIndex={weekIndex} videos={videosByWeek[weekIndex] ?? []} />
+              <AddAiSummaryButton weeks={[weekIndex]} btnText={`Add Ai Summary to Week ${weekIndex}`} overwrite={true} />
             </header>
 
             <WeekInfoEditor weekIndex={weekIndex} />
@@ -156,27 +159,16 @@ function VideoInWeek({ weekIndex, video }: { weekIndex: number, video: AiVimeoRe
       data: newItems,
     })
     toast.success("Updated Item Meta");
-
   }
 
-  const options: ClipListMetaItem = {
-    video_type: video.video_type ?? "lecture",
-    in_list: true,
-    clip_id: video.clip_id,
-    vimeoId: video.vimeoId,
-    start: video.start,
-    end: video.end,
-    summary: video.summary,
-    week_index: weekIndex,
-    // TODO: add topics if we have them
-  }
+	const [openDetails, setOpenDetails] = useState<(()=>void)|undefined>(undefined);
 
   return <div className="flex flex-col gap-2 bg-neutral-100 p-4 rounded-md hover:bg-neutral-200">
     <header className="relative">
       <div>
         <div className="flex flex-row items-start gap-2 ">
           <p>{video.name}</p>
-          <VideoInWeekMenu options={options} save={handleSave} />
+          <VideoInWeekDetails videoInfo={video} save={handleSave} setOpenDetails={setOpenDetails} />
         </div>
         <p className="text-xs">
           {formatTime(video.start)} - {video.end ? formatTime(video.end) : 'end'}
@@ -191,7 +183,7 @@ function VideoInWeek({ weekIndex, video }: { weekIndex: number, video: AiVimeoRe
       <Button variant="destructive" onClick={handleRemove}>
         Remove
       </Button>
-      <Button variant="secondary" onClick={() => toast.error("Not implemented")}>
+      <Button variant="secondary" onClick={() => openDetails?.()}>
         Watch
       </Button>
     </div>
@@ -203,15 +195,23 @@ function generateEmailMarkup(videos: AiVimeoResult[], resources: { link: string,
   return null;
 }
 
-function VideoInWeekMenu({ options, save }: { options: ClipListMetaItem, save: (options: ClipListMetaItem) => void }) {
-
+function VideoInWeekDetails({ videoInfo, save, setOpenDetails }: { videoInfo: AiVimeoResult, save: (options: ClipListMetaItem) => void, setOpenDetails: Function } ) {
   const [isopen, setIsOpen] = useState(false);
-  function handleSave(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const updated = {
-      ...options,
-      video_type: formData.get('video_type')?.toString(),
+  const [updatedVideoType, setUpdatedVideoType] = useState(videoInfo.video_type ?? "Secondary Lecture");
+  const [updatedVideoSummary, setUpdatedSummary] = useState(videoInfo.summary ?? "");
+	useEffect(()=>{setOpenDetails(()=>()=>setIsOpen(true))},[])
+  function handleSave() {
+    const updated: ClipListMetaItem = {
+      ...{
+        clip_id: videoInfo.clip_id,
+        vimeoId: videoInfo.vimeoId,
+        start: videoInfo.start,
+        end: videoInfo.end,
+        summary: videoInfo.summary,
+        in_list: videoInfo.in_list,
+        week_index: videoInfo.week_index,
+      },
+      video_type: updatedVideoType,
     }
     save(updated);
     setIsOpen(false);
@@ -223,25 +223,33 @@ function VideoInWeekMenu({ options, save }: { options: ClipListMetaItem, save: (
     </DialogTrigger>
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Options For Video</DialogTitle>
-        <DialogDescription>
-          <p>These options effect how the video is displayed in the email.</p>
+        <DialogTitle className="m-0">{videoInfo.name}</DialogTitle>
+        <DialogDescription className="m-0">
+          {formatTime(videoInfo.start)} - {videoInfo.end ? formatTime(videoInfo.end) : 'end'}
         </DialogDescription>
       </DialogHeader>
-      <div>
-        <form onSubmit={handleSave} className="flex flex-col gap-4">
-          <FormInput>
-            <Label className="text-sm font-bold">Video Type</Label>
-            <VideoInWeekTypeOptions value={options.video_type ?? undefined} />
+      <div className="flex flex-col gap-4">
+          <FormInput className="flex-row justify-between">
+						<Label className="text-sm font-bold">Video Type</Label>
+            <VideoInWeekTypeOptions value={updatedVideoType} onChange={setUpdatedVideoType} />
           </FormInput>
-          <Button variant="secondary" type="submit">Save</Button>
-        </form>
+
+        <div className="flex flex-col gap-2">
+          <Label className="text-sm font-bold" htmlFor={`${videoInfo.clip_id}-summary`}>Video Summary</Label>
+          <Textarea name="summary" id={`${videoInfo.clip_id}-summery`} value={updatedVideoSummary} onChange={(e) => setUpdatedSummary(e.target.value)} />
+        </div>
+        <div>
+          <iframe src={videoInfo.player_embed_url} width="100%" height="400" title={videoInfo.name}></iframe>
+        </div>
       </div>
+      <DialogFooter>
+        <Button onClick={handleSave}>Save</Button>
+      </DialogFooter>
     </DialogContent>
-  </Dialog>
+  </Dialog >
 }
-function VideoInWeekTypeOptions({ value }: { value: string | undefined }) {
-  return <Select name="video_type" defaultValue={value || "main"}>
+function VideoInWeekTypeOptions({ value, onChange }: { value: string, onChange: (value: string) => void }) {
+  return <Select name="video_type" onValueChange={onChange} value={value}>
     <SelectTrigger className="w-[180px]">
       <SelectValue placeholder="Select a video type" />
     </SelectTrigger>
@@ -302,7 +310,7 @@ export function WeekInfoEditor({ weekIndex }: { weekIndex: number }) {
 }
 
 
-function AddAiSummaryButton({ weekIndex, videos }: { weekIndex: number, videos: AiVimeoResult[] }) {
+function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], btnText: string, overwrite?: boolean }) {
   const [weekInfo, setWeekInfo] = useAtom(WeekInfo);
   const [items, setItems] = useAtom(ListItems);
   const [aiManagerMessages] = useAtom(AiRequestManagerMessages);
@@ -311,23 +319,38 @@ function AddAiSummaryButton({ weekIndex, videos }: { weekIndex: number, videos: 
   const [isOpen, setIsOpen] = useState(false);
   const [currentState, setCurrentState] = useState<"confirm" | "progress" | "finished">("confirm");
 
+  const videos = useMemo(() => {
+    return items.filter(item => weeks.includes(item.week_index ?? -1));
+  }, [weeks]);
+
   const handleIncMessageCount = useCallback(() => setSeenMessageCount(prev => prev + 1), [setSeenMessageCount]);
 
+  const weekHasIntro = (weekIndex: number) => {
+    const content = weekInfo[weekIndex]?.emails[0]?.textContent;
+    return (content?.length && content !== defaultWeekInfo(weekIndex).emails[0]!.textContent);
+  }
+
   async function handleAddAiSummary() {
-    const aiVideos = videos.map(v => ({
-      vimeoId: v.vimeoId,
-      start: v.start,
-      end: v.end,
-      clipId: v.clip_id,
-      summary: undefined,
-    }))
-    const aiEmail = {
-      weekIndex: `week_${weekIndex}`,
-      clipIds: videos.map(v => v.clip_id),
-      summary: undefined,
-    };
-    aiRequestManager.setWork({ videos: aiVideos, emails: [aiEmail] });
-    await aiRequestManager.start();
+    // if we overwrite then return all the emails and their videos else only the ones that don't have an intro/have the
+    // default intro
+    const aiEmails = (overwrite ? weeks : weeks.filter(weekIndex => !weekHasIntro(weekIndex)))
+      .map(weekIndex => ({
+        weekIndex: `week_${weekIndex}`,
+        clipIds: videos.filter(v => v.week_index === weekIndex).map(v => v.clip_id),
+        summary: undefined,
+      }));
+    const aiEmailVideoClipIds = aiEmails.map(email => email.clipIds).flat();
+    const aiVideos = videos
+      .filter((video) => aiEmailVideoClipIds.includes(video.clip_id))
+      .map(v => ({
+        vimeoId: v.vimeoId,
+        start: v.start,
+        end: v.end,
+        clipId: v.clip_id,
+        summary: undefined,
+      }))
+    aiRequestManager.setWork({ videos: aiVideos, emails: aiEmails });
+    await aiRequestManager.start(overwrite);
   }
 
   function handleOpenChange(open: boolean) {
@@ -345,7 +368,6 @@ function AddAiSummaryButton({ weekIndex, videos }: { weekIndex: number, videos: 
   }
 
   const updateWithAiResults = useCallback(({ videos, emails }: { videos: AiVideo[], emails: AiEmail[] }) => {
-    console.log(items, weekInfo);
     const clipIds = videos.map(v => v.clipId);
     const newItems = items.map(item => {
       if (clipIds.includes(item.clip_id)) {
@@ -358,16 +380,18 @@ function AddAiSummaryButton({ weekIndex, videos }: { weekIndex: number, videos: 
       data: newItems,
     })
 
-    const week = weekInfo[weekIndex];
-    if (week) {
-      week.emails[0]!.textContent = emails.find(e => e.weekIndex === `week_${weekIndex}`)?.summary ?? "";
-      const copy = { ...weekInfo, [weekIndex]: week };
-      setWeekInfo({
-        data: copy
-      })
-    }
+    const newWeekInfo = Object.entries(weekInfo).map(([index, weekInfoItem]) => {
+      if (weeks.includes(Number(index))) {
+        weekInfoItem.emails[0]!.textContent = emails.find(e => e.weekIndex === `week_${index}`)?.summary ?? "";
+      }
+      return weekInfoItem;
+    })
+
+    setWeekInfo({
+      data: newWeekInfo
+    })
     setCurrentState("finished");
-  }, [items, setItems, weekInfo, setWeekInfo, weekIndex])
+  }, [items, setItems, weekInfo, setWeekInfo, weeks])
 
   const updateProgress = useCallback(({ done, total }: { done: number, total: number }) => {
     setProgress({ done, total });
@@ -432,7 +456,7 @@ function AddAiSummaryButton({ weekIndex, videos }: { weekIndex: number, videos: 
   }, [aiManagerMessages, updateWithAiResults, updateProgress, isOpen, items])
 
   const button = <Button className="bg-purple-50 text-purple-800 hover:bg-purple-100 hover:text-purple-900 ">
-    Add Ai Summary to Week {weekIndex}
+    {btnText}
   </Button>;
 
   return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -446,7 +470,7 @@ function AddAiSummaryButton({ weekIndex, videos }: { weekIndex: number, videos: 
             ? "Finished"
             : currentState == "confirm"
               ? "Ready?"
-              : `Generating Summaries for Week ${weekIndex}`}
+              : `Generating Summaries for ${weeks.length} Week Intros, and ${videos.length} Video Summaries`}
         </DialogTitle>
         <DialogDescription>
           {currentState == "finished"

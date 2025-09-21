@@ -73,6 +73,7 @@ export class AiRequestManager {
   }
 
   public setWork({ videos, emails }: { videos: AiVideo[], emails?: AiEmail[] }) {
+    console.log("setting work")
     if (this.isRunning) {
       throw new Error("AiRequestManager is already running");
     }
@@ -89,19 +90,23 @@ export class AiRequestManager {
   }
 
   public async start(bypassCache = false) {
+    console.log("starting")
     if (this.isRunning) {
       console.error("AiRequestManager is already running");
       return;
     }
+    console.log("not running currently", this.videos.length, this.emails.length)
     if (this.videos.length === 0) {
       console.error("No videos to submit");
       return;
     }
 
+    console.log("we got vidoes to run")
     this.notify({ type: 'info', message: "Starting Summary Generation" });
     this.notify({ type: 'progress', message: { done: this.done, total: this.total } });
     this.isRunning = true;
 
+    console.log("starting the work")
     for (let i = 0; i < this.videos.length; i++) {
       const video = this.videos[i]!;
       const results = await this.send(SUMMARIZE_VIDEO, {...video, bypassCache});

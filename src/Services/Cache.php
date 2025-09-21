@@ -13,7 +13,7 @@ class Cache {
         /** @var callable $generate */
         private $generate,
         public int $cacheTime,
-        public ?bool $bypassCache = false,
+        public bool $bypassCache = false,
     ) {
 
     }
