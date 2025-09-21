@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atom, createStore } from "jotai";
 import type { AimClipListPost, AimClipListResources, ClipListMetaItem } from "./types";
 
 type IDLE_STATE = {
@@ -152,3 +152,6 @@ export const FormId = atom<number, [{ data: number, fromDb?: boolean }], void>(
 		}
 	}
 );
+
+export const store = createStore();
+

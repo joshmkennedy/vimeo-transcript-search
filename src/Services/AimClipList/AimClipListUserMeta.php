@@ -12,7 +12,7 @@ class AimClipListUserMeta {
     }
 
     public function getSubscribedLists($userId) {
-        return get_user_meta($userId, self::PREFIX . $this->subscribed_lists, true);
+        return get_user_meta($userId, self::PREFIX . $this->subscribed_lists, true) ?: [];
     }
 
     private function setSubscribedList($userId, array $list) {

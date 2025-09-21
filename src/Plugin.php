@@ -33,7 +33,13 @@ class Plugin {
         //ENSURE EMBED DB
 
         $this->addHooks();
+        $this->createApi();
         $this->loaded = true;
+    }
+
+    //* not rest but programming or integration api
+    private function createApi() {
+        new \Jk\Vts\Forms\FormDisplay(); // creates global $aimFormDisplay
     }
 
     private function addHooks() {

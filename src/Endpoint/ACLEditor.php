@@ -4,7 +4,10 @@ namespace Jk\Vts\Endpoint;
 
 use Jk\Vts\Services\AimClipList\ClipListCSVParser;
 use \Jk\Vts\Services\AimClipList\ClipListMeta;
+use Jk\Vts\Services\AiSummarize;
+use Jk\Vts\Services\Cache;
 use Jk\Vts\Services\Logging\LoggerTrait;
+use Jk\Vts\Services\TranscriptChunk;
 
 class ACLEditor {
     use LoggerTrait;
@@ -171,16 +174,16 @@ class ACLEditor {
         $formId = $body['formId'] ?? 19902;
 
         $categoryId = $body['category'] ?? 74;
-        $category = get_term((int)$categoryId,'aim-clip-list-category');
+        $category = get_term((int)$categoryId, 'aim-clip-list-category');
         if (!$category) {
-           new \WP_Error('invalid_category', 'Category not found', ['status' => 400]);
+            new \WP_Error('invalid_category', 'Category not found', ['status' => 400]);
         }
 
         $weeksInfo = [];
-        try{
-        $weeksInfo = $this->meta->normalizeWeeksFromEditor(
-            $body['weeksInfo'] ?? $this->meta->getWeeksForEditor($postId),
-        );
+        try {
+            $weeksInfo = $this->meta->normalizeWeeksFromEditor(
+                $body['weeksInfo'] ?? $this->meta->getWeeksForEditor($postId),
+            );
         } catch (\Exception $e) {
             error_log($e->getMessage());
             return new \WP_Error('invalid_weeks', $e->getMessage(), ['status' => 400]);
@@ -230,6 +233,71 @@ class ACLEditor {
         return rest_ensure_response($clipId);
     }
 
+    public function summarizeVideo(\WP_REST_Request $request) {
+        $body = json_decode($request->get_body(), true);
+        if (!isset($body['vimeoId']) || !isset($body['start']) || !isset($body['end']) || !isset($body['clipId'])) {
+            return new \WP_Error('invalid_body', 'Request body is missing or invalid, missing videos.', ['status' => 400]);
+        }
+
+        $aiSummarize = new AiSummarize();
+        $cache = new Cache(
+            fn($info) => "ai-video-summary-{$info['clipId']}",
+            fn($info) => $aiSummarize->summarizeVideo($info['content'], implode("\n- ", $info['keypoints'])),
+            10 * MINUTE_IN_SECONDS,
+            isset($body['bypassCache']) ? $body['bypassCache'] : false,
+        );
+
+        $this->log()->info("getting the contents from the db for {$body['vimeoId']}:{$body['start']}-{$body['end']}...");
+
+        try {
+            $tc = new TranscriptChunk()->get($body['vimeoId'], (int)$body['start'], (int)$body['end']);
+            $info = [
+                'content' => $tc->concatOn('summary'),
+                'keypoints' => $tc->keyPoints(),
+                'clipId' => $body['clipId'],
+            ];
+            $this->log()->info("getting summary for {$body['clipId']}...");
+            $info['summary'] = $cache->get($info);
+            $this->log()->info("got summary for {$body['clipId']}");
+            $results = [
+                'clipId' => $body['clipId'],
+                'summary' => $info['summary'],
+            ];
+            return rest_ensure_response($results);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            return new \WP_Error('failed_to_summarize', "Failed to summarize. {$e->getMessage()}", ['status' => 400]);
+        }
+    }
+
+    public function summarizeEmail(\WP_REST_Request $request) {
+        $body = json_decode($request->get_body(), true);
+
+        if (!isset($body['weekIndex']) || !isset($body['summaries']) || !is_array($body['summaries']) || !isset($body['postId'])) {
+            return new \WP_Error('invalid_body', 'Request body is missing or is invalid.', ['status' => 400]);
+        }
+
+        $aiSummarize = new AiSummarize();
+        $cache = new Cache(
+            fn($info) => "ai-week-email-summary-{$info['weekIndex']}-{$info['postId']}",
+            fn($info) => $aiSummarize->summarizeEmail(implode("\n-", $info['summaries'])),
+            10 * MINUTE_IN_SECONDS,
+            isset($body['bypassCache']) ? $body['bypassCache'] : false,
+        );
+
+        try {
+            $summary = $cache->get($body);
+            $results = [
+                'weekIndex' => $body['weekIndex'],
+                'summary' => $summary,
+            ];
+            return rest_ensure_response($results);
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            return new \WP_Error('failed_to_summarize', "Failed to summarize. {$e->getMessage()}", ['status' => 400]);
+        }
+    }
+
     // ** CONFIG FOR ROUTES **//
     public function getRoutes() {
         return [
@@ -266,6 +334,15 @@ class ACLEditor {
             $this->makeRoutePath('build-resources') => [
                 'methods' => 'POST',
                 'callback' => [$this, 'buildResources'],
+            ],
+
+            $this->makeRoutePath('summarize-video') => [
+                'methods' => 'POST',
+                'callback' => [$this, 'summarizeVideo'],
+            ],
+            $this->makeRoutePath('summarize-email') => [
+                'methods' => 'POST',
+                'callback' => [$this, 'summarizeEmail'],
             ],
         ];
     }

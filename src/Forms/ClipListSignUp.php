@@ -55,9 +55,6 @@ class ClipListSignUp {
             default => "beginner",
         };
 
-        $this->log()->info("score: $score");
-        $this->log()->info("highestScore: $highestScore");
-        $this->log()->info("category: $category");
         // register the user for the cliplist that goes with their category.
         $listId = $this->getListIdFromCategory($category, $entry->form_id);
         if(!$listId){
@@ -76,12 +73,6 @@ class ClipListSignUp {
         $clipListRegistrationId = $entry->entry_id;
     }
 
-    // function redirectToSuccessPage(){
-    //     global $didSubmit;
-    //     if(isset($didSubmit)){
-    //         wp_redirect(site_url() . self::successPage);
-    //     }
-    // }
     private function getListIdFromCategory(string $category, int $id) {
         $lists = get_posts([
             'post_type' => 'aim-clip-list',
