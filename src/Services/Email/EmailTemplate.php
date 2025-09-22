@@ -151,11 +151,20 @@ class EmailTemplate {
     <?php
     }
 
-    public function imageCardMarkup($link, $title, $imageUrl, $text, $width, $imageStyles) {
+    public function imageCardMarkup($link, $title, $imageUrl, $text, $width, $imageStyles, $description) {
         ob_start(); ?>
         <a href="<?= $link; ?>">
             <img src="<?= $imageUrl; ?>" alt="<?= $title; ?>" width="<?= $width; ?>" style="<?= $imageStyles; ?>">
         </a>
+        <?php if ($description && $description !== ""): ?>
+            <table>
+                <tr>
+                    <td>
+                        <p><?= $this->replaceNLWithBR($description); ?></p>
+                    </td>
+                </tr>
+            </table>
+        <?php endif; ?>
         <?php $this->buttonMarkup($link, $text); ?>
     <?php
         return ob_get_clean();
@@ -179,10 +188,10 @@ class EmailTemplate {
             <td>
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                     <tr>
-                        <td class="two-col" width="50%" align="center">
+                        <td class="two-col" width="50%" align="center" style="font-size:14px">
                             <?= $left(); ?>
                         </td>
-                        <td class="two-col" width="50%" align="center">
+                        <td class="two-col" width="50%" align="center" style="font-size:14px">
                             <?= $right(); ?>
                         </td>
                     </tr>
@@ -207,9 +216,11 @@ class EmailTemplate {
     public function clipListContentMarkup($config) {
         ob_start(); ?>
         <tr>
-            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
-                <p>This is some content about the videos</p>
-            </td>
+            <?php if (isset($config['emailIntro']) && $config['emailIntro']): ?>
+                <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                    <p><?= $this->replaceNLWithBR($config['emailIntro']); ?></p>
+                </td>
+            <?php endif; ?>
         </tr>
 
         <!-- Full width image -->
@@ -220,6 +231,7 @@ class EmailTemplate {
                 link: $mainVideo['link'],
                 text: "Watch this video",
                 imageUrl: $mainVideo['image_url'],
+                description: $mainVideo['summary'],
                 imageStyles: null,
                 width: 600,
                 title: $mainVideo['title'],
@@ -234,6 +246,7 @@ class EmailTemplate {
                 fn() => isset($sideVideoPair[0]) ? $this->imageCardMarkup(
                     link: $sideVideoPair[0]['link'],
                     text: "Watch this video",
+                    description: $sideVideoPair[0]['summary'],
                     imageUrl: $sideVideoPair[0]['image_url'],
                     imageStyles: null,
                     width: 290,
@@ -244,6 +257,7 @@ class EmailTemplate {
                     text: "Watch this video",
                     imageUrl: $sideVideoPair[1]['image_url'],
                     imageStyles: null,
+                    description: $sideVideoPair[1]['summary'],
                     width: 290,
                     title: $sideVideoPair[1]['title'],
                 ) : "",
@@ -290,5 +304,9 @@ class EmailTemplate {
             </td>
         </tr>
 <?php
+    }
+
+    public function replaceNLWithBR($text) {
+        return str_replace("\n", "<br>", $text);
     }
 }

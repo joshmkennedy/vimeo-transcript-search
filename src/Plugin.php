@@ -40,6 +40,9 @@ class Plugin {
     //* not rest but programming or integration api
     private function createApi() {
         new \Jk\Vts\Forms\FormDisplay(); // creates global $aimFormDisplay
+
+        global $getAimClipListWeekData;
+        $getAimClipListWeekData = fn($clipListId, $weekIndex) => new \Jk\Vts\Services\AimClipList\AimClipListWeekData($clipListId, $weekIndex);
     }
 
     private function addHooks() {

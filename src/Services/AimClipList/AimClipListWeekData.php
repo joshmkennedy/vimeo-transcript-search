@@ -1,0 +1,78 @@
+<?php
+/**
+```php
+$aclWeek = new AimClipListWeekData(
+    clipListId: int,
+    weekIndex: int,
+);
+
+wp_localize_script(
+    'acl-vimeo-plugin',
+    'aclWeek',
+    $aclWeek->getVimeoPluginData(),
+);
+
+```
+**/
+
+namespace Jk\Vts\Services\AimClipList;
+
+use Jk\Vts\Services\Logging\LoggerTrait;
+use Jk\Vts\Services\VimeoInfoVideoList;
+
+class AimClipListWeekData {
+
+    use LoggerTrait;
+
+    private ClipListMeta $meta;
+
+    public function __construct(public int $clipListId, public int $weekIndex) {
+        $this->meta = new ClipListMeta();
+    }
+
+    /**
+     * @return array{
+     *     videos: array<array{
+     *         vimeoId:string,
+     *         start:int,
+     *         end:int,
+     *         clipId: string,
+     *         summary:string,
+     *         name:string,
+     *         image_url:string,
+     *         }>,
+     *      resources: array<array{label:string, link:string}>,
+     *      weekIndex:string,
+     *      clipListId:string,
+     *      selectedVideo:string,
+     *  }
+     **/
+    public function getVimeoPluginData():array {
+        $items = $this->meta->getItems($this->clipListId);
+        $this->log()->info("getting vimeo plugin data for {$this->clipListId}:{$this->weekIndex}",[$items]);
+
+        $items = collect($items)->reject(fn($item) => !isset($item['week_index']) || $item['week_index'] !== $this->weekIndex)->toArray();
+        $this->log()->info("getting vimeo plugin data for {$this->clipListId}:{$this->weekIndex}",[count($items)]);
+        $videos = collect(VimeoInfoVideoList::getVideoInfoList($items));
+        $selectedVideo = ($videos->first(fn($video)=>$video['video_type'] === 'lecture') ?? $videos->first())['clip_id'];
+        $resources = collect($this->meta->getResources($this->clipListId))->reject(fn($item) => $item['week_index'] !== $this->weekIndex);
+        return [
+            'videos' => $videos->map(fn($video) => [
+                'vimeoId' => $video['vimeoId'],
+                'start' => $video['start'],
+                'end' => $video['end'],
+                'clipId' => $video['clip_id'],
+                'summary' => $video['summary'],
+                'name' => $video['name'],
+                'image_url' => $video['pictures']['base_link'],
+            ])->values()->toArray(),
+            'resources' => $resources->map(fn($resource) => [
+                'label' => $resource['label'],
+                'link' => $resource['link'],
+            ])->values()->toArray(),
+            'weekIndex' => $this->weekIndex,
+            'clipListId' => $this->clipListId,
+            'selectedVideo' => $selectedVideo,
+        ];
+    }
+}

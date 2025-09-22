@@ -18,22 +18,23 @@ class ClipListEmail {
         $this->emailService = new EmailService();
     }
 
-    public function send($emailAddress) {
-        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
-        $content = $this->template->clipListTemplate(
-            site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
-            $this->config,
-        );
-        $this->emailService->send(
-            $emailAddress,
-            $this->config['title'],
-            $content,
-            [
-                'Content-Type: text/html; charset=UTF-8',
-            ],
-        );
-    }
-
+    // TODO: find out if we need this?
+    //
+    // public function send($emailAddress) {
+    //     $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
+    //     $content = $this->template->clipListTemplate(
+    //         site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
+    //         $this->config,
+    //     );
+    //     $this->emailService->send(
+    //         $emailAddress,
+    //         $this->config['title'],
+    //         $content,
+    //         [
+    //             'Content-Type: text/html; charset=UTF-8',
+    //         ],
+    //     );
+    // }
 
     public function generateClipListEmail($emailAddress) {
         $content = $this->generateClipListEmailContent($emailAddress);
@@ -48,7 +49,7 @@ class ClipListEmail {
     }
 
     private function generateClipListEmailContent($emailAddress) {
-        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
+        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
         $content = $this->template->clipListTemplate(
             site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
             $this->config,
@@ -68,7 +69,7 @@ class ClipListEmail {
         ];
     }
     private function generateTextBasedEmailContent($emailAddress) {
-        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress);
+        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
         $content = $this->template->textBasedTemplate(
             site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
             $this->config,
@@ -89,15 +90,11 @@ class ClipListEmail {
 
         $videos = collect(VimeoInfoVideoList::getVideoInfoList($wkVideos))
             ->toArray();
-        $mainVideo = $this->mainVideo($videos);
-        $sideVideos = $this->sideVideos($videos);
+        $createLink = fn($clipid)=> get_site_url() . "/aim-learning-path/{$this->clipListId}/$weekIndex?clip_id=$clipid";
+        $mainVideo = self::mainVideo($videos, $createLink);
+        $sideVideos = self::sideVideos($videos, $createLink);
 
-        $links = collect($wkResources)
-            ->map(fn($item) => [
-                'link' => $item['link'],
-                'text' => $item['label'],
-            ])
-            ->toArray();
+        $links = self::resourceLinks($wkResources);
 
         $emailTitle = "This weeks videos and resources";
 
@@ -110,30 +107,44 @@ class ClipListEmail {
         ];
     }
 
-    public function createOptoutLink($emailAddress) {
-        return get_rest_url('vts/v1/vts/opt-out-user') . "?email=$emailAddress&clip_list_id=$this->clipListId";
+    public static function createOptoutLink($emailAddress, $clipListId) {
+        return get_rest_url('vts/v1/vts/opt-out-user') . "?email=$emailAddress&clip_list_id=$clipListId";
     }
 
-    private function sideVideos($items) {
-        $sides = collect($items)->filter(fn($item) => isset($item['video_type']) && ($item['video_type'] == 'secondary' || $item['video_type'] == 'lab'));
-        return $sides->map(fn($v) => $this->fmtVideoConfig($v))->toArray();
+    public static function sideVideos($items, $createLink) {
+        $sides = collect($items)->filter(fn($item) => isset($item['video_type']) && ($item['video_type'] == 'secondary-lecture' || $item['video_type'] == 'lab'));
+        return $sides->map(fn($v) => self::fmtVideoConfig($v ,$createLink))->toArray();
     }
 
-    private function mainVideo($items) {
-        print_r($items);
-        $main = array_find($items, fn($item) => isset($item['video_type']) && ($item['video_type'] == 'lecture' || $item['video_type'] == 'main'));
+    public static function mainVideo($items, $createLink) {
+        $main = array_find($items, fn($item) => isset($item['video_type']) && ($item['video_type'] == 'lecture'));
         if (!$main) {
             throw new \Exception("No main video found");
         }
-        return $this->fmtVideoConfig($main);
+        return self::fmtVideoConfig($main, $createLink);
     }
 
+    public static function linkToClipListPage($weekIndex, $id, $kind){
+        // todo: pull in from site option
+        return get_site_url() . "/aim-learning-path/$weekIndex?id=$id&kind=$kind";
+    }
 
-    private function fmtVideoConfig($item) {
+    public static function resourceLinks($items) {
+        return collect($items)
+            ->map(fn($item) => [
+                'link' => $item['link'],
+                'text' => $item['label'],
+            ])
+            ->toArray();
+    }
+
+    private static function fmtVideoConfig($item, $createLink) {
+        // TODO: need to override the link because we dont want tolink to the player but the cliplist page.
         return [
-            'link' => $item['player_embed_url'],
-            'title' => $item['name'],
-            'image_url' => $item['pictures']['base_link'],
+            'link' => isset($item['link']) ? $item['link']: ($createLink($item['clip_id'])),
+            'title' => isset($item['title']) ? $item['title']: $item['name'],
+            'summary' => isset($item['summary']) ? $item['summary'] : "",
+            'image_url' => isset($item['image_url']) ? $item['image_url'] : $item['pictures']['base_link'],
         ];
     }
 }

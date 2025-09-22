@@ -5,22 +5,22 @@ declare global {
       nonce: string;
       apiUrl: string;
     };
-    vtsACLEditor:{
+    vtsACLEditor: {
       nonce: string;
       apiUrl: string;
-      postId:  number | string;
+      postId: number | string;
       post: any;
       items: any;
       previewList: any;
       resources: any;
-      weeksInfo:any;
-      formId:any;
+      weeksInfo: any;
+      formId: any;
       category: any;
       clipListCategories: any;
     };
     vtsPublic: {
       nonce: string;
-      aimClip?:string;
+      aimClip?: string;
     }
   }
 }
@@ -31,11 +31,14 @@ export interface VimeoPluginInterface {
 }
 declare global {
   interface Window {
+    aimVimeoPluginData: {
+      [key: string]: any;
+    };
     aimVimeoPlugins: {
       [key: string]: VimeoPluginInterface;
     }[];
   }
 }
 // This empty export makes the file a module, which is required for 'declare global'.
-export {};
+export { };
 

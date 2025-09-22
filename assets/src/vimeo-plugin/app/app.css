@@ -23,3 +23,14 @@
   font-size: 1rem;
   line-height: 1.3rem;
 }
+
+#aim-clip-player-app{
+  .aim-video-selection-list{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+}
+#aim-clip-player-app .aim-resource-list{
+  margin-top: 1rem;
+}

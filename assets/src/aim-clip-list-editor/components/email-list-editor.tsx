@@ -38,16 +38,54 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
   const videosByWeek = Object.groupBy(videos, v => v.week_index ?? -1);
   const resourcesByWeek = Object.groupBy(appResources ?? [], v => v.week_index ?? -1);
 
+  async function generateEmailMarkup(
+    videos: AiVimeoResult[],
+    resources: { link: string, label: string; }[],
+    introContent: string,
+		weekIndex: string,
+  ) {
+
+    const response = await api.post('/email-preview', {
+      postId: parseInt(window.vtsACLEditor.postId.toString()),
+      content: introContent,
+      resources,
+      videos: videos.map(v => {
+        return {
+          image_url: v.pictures.base_link,
+          vimeoId: v.vimeoId,
+          title: v.name,
+          summary: v.summary,
+          video_type: v.video_type,
+					clip_id: v.clip_id,
+        }
+      }),
+			week_index: weekIndex,
+    })
+    if (response.code) {
+      toast.error(response.message);
+      return null;
+    }
+
+    return response;
+  }
+
+  const [emailConfig, setEmailConfig] = useState<any>(undefined);
+
   async function previewEmail(weekIndex: number) {
     const videosInWeek = videosByWeek[weekIndex]!;
-    const markup = generateEmailMarkup(videosInWeek, [] as any);
-    if (!markup) {
+    const emailIntro = weekInfo[weekIndex]?.emails[0]?.textContent ?? ""
+    const email = await generateEmailMarkup(videosInWeek, resourcesByWeek[weekIndex] ?? [], emailIntro, weekIndex.toString());
+    if (!email) {
       toast.error("No email markup found");
       return;
     }
-    // setEmailMarkupModel(markup);
-    toast.success("Email previewed");
+    setEmailConfig(email)
   }
+
+	function handleAccordionValueChange(week: string) {
+		setActiveWeek(Number(week));
+		setEmailConfig(undefined);
+	}
 
   async function buildResources() {
     const data = await api.post('/build-resources', {
@@ -67,7 +105,7 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
   return <div className="">
     <Button variant="secondary" onClick={buildResources}>Find Resources Weeks</Button>
     <AddAiSummaryButton weeks={Object.keys(weekInfo).map(Number)} btnText={`Fill in missing Email Intros`} overwrite={false} />
-    <Accordion type="single" collapsible onValueChange={(week) => setActiveWeek(Number(week))} value={activeWeek.toString()}>
+    <Accordion type="single" collapsible onValueChange={handleAccordionValueChange} value={activeWeek.toString()}>
       {WEEKS.map((week, i) => {
         const weekIndex = i + 1;
         return <AccordionItem key={i} value={weekIndex.toString()}>
@@ -81,7 +119,9 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
           <AccordionContent className="flex flex-col gap-4">
             <header className="flex flex-row items-center gap-2 justify-between">
               <p className="text-lg font-bold">Week {i + 1}</p>
-              <Button variant="secondary" onClick={() => previewEmail(weekIndex)}>Preview Email</Button>
+
+              <PreviewEmailContent onOpen={() => previewEmail(i + 1)} email={emailConfig} />
+
               <AddAiSummaryButton weeks={[weekIndex]} btnText={`Add Ai Summary to Week ${weekIndex}`} overwrite={true} />
             </header>
 
@@ -97,6 +137,42 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
         </AccordionItem>
       })}
     </Accordion>
+  </div>
+}
+
+function PreviewEmailContent({ email, onOpen }: { email: any, onOpen: () => Promise<void> }) {
+  const [isLoading, setIsLoading] = useState(false);
+  function handleOpenChange(open: boolean) {
+    if (open && !email) {
+      setIsLoading(true);
+      onOpen().finally(() => setIsLoading(false));
+    }
+  }
+
+  return <Dialog onOpenChange={handleOpenChange}>
+    <DialogTrigger asChild>
+      <Button variant="secondary" onClick={onOpen}>Preview Email</Button>
+    </DialogTrigger>
+    <DialogContent className="sm:w-full sm:max-w-[800px] ">
+      <DialogHeader>
+        <DialogTitle>Preview Email</DialogTitle>
+        <DialogDescription>
+          <p>This is a preview of the email that will be sent to your subscribers.</p>
+        </DialogDescription>
+      </DialogHeader>
+      {email?.content ?
+        <PreviewEmailDisplay email={email} /> : <p>Loading...</p>
+      }
+    </DialogContent>
+  </Dialog>
+}
+
+function PreviewEmailDisplay({ email }: { email: { subject: string, content: string } }) {
+  return <div>
+    <header className="border-b">
+      <h1>{email.subject}</h1>
+    </header>
+		<iframe srcDoc={email.content} width="100%" style={{height: "70vh"}} title={email.subject}></iframe>
   </div>
 }
 
@@ -161,7 +237,7 @@ function VideoInWeek({ weekIndex, video }: { weekIndex: number, video: AiVimeoRe
     toast.success("Updated Item Meta");
   }
 
-	const [openDetails, setOpenDetails] = useState<(()=>void)|undefined>(undefined);
+  const [openDetails, setOpenDetails] = useState<(() => void) | undefined>(undefined);
 
   return <div className="flex flex-col gap-2 bg-neutral-100 p-4 rounded-md hover:bg-neutral-200">
     <header className="relative">
@@ -190,16 +266,15 @@ function VideoInWeek({ weekIndex, video }: { weekIndex: number, video: AiVimeoRe
   </div>
 }
 
-function generateEmailMarkup(videos: AiVimeoResult[], resources: { link: string, label: string; }) {
-  toast.error("Not implemented");
-  return null;
-}
 
-function VideoInWeekDetails({ videoInfo, save, setOpenDetails }: { videoInfo: AiVimeoResult, save: (options: ClipListMetaItem) => void, setOpenDetails: Function } ) {
+function VideoInWeekDetails({ videoInfo, save, setOpenDetails }: { videoInfo: AiVimeoResult, save: (options: ClipListMetaItem) => void, setOpenDetails: Function }) {
   const [isopen, setIsOpen] = useState(false);
-  const [updatedVideoType, setUpdatedVideoType] = useState(videoInfo.video_type ?? "Secondary Lecture");
+  const [updatedVideoType, setUpdatedVideoType] = useState(videoInfo.video_type ?? "secondary-lecture");
   const [updatedVideoSummary, setUpdatedSummary] = useState(videoInfo.summary ?? "");
-	useEffect(()=>{setOpenDetails(()=>()=>setIsOpen(true))},[])
+
+  // allow parent to open the details
+  useEffect(() => { setOpenDetails(() => () => setIsOpen(true)) }, [])
+
   function handleSave() {
     const updated: ClipListMetaItem = {
       ...{
@@ -229,10 +304,10 @@ function VideoInWeekDetails({ videoInfo, save, setOpenDetails }: { videoInfo: Ai
         </DialogDescription>
       </DialogHeader>
       <div className="flex flex-col gap-4">
-          <FormInput className="flex-row justify-between">
-						<Label className="text-sm font-bold">Video Type</Label>
-            <VideoInWeekTypeOptions value={updatedVideoType} onChange={setUpdatedVideoType} />
-          </FormInput>
+        <FormInput className="flex-row justify-between">
+          <Label className="text-sm font-bold">Video Type</Label>
+          <VideoInWeekTypeOptions value={updatedVideoType} onChange={setUpdatedVideoType} />
+        </FormInput>
 
         <div className="flex flex-col gap-2">
           <Label className="text-sm font-bold" htmlFor={`${videoInfo.clip_id}-summary`}>Video Summary</Label>
@@ -254,9 +329,9 @@ function VideoInWeekTypeOptions({ value, onChange }: { value: string, onChange: 
       <SelectValue placeholder="Select a video type" />
     </SelectTrigger>
     <SelectContent>
-      <SelectItem value="Lecture">Lecture</SelectItem>
-      <SelectItem value="Secondary Lecture">Secondary Lecture</SelectItem>
-      <SelectItem value="Lab">Lab</SelectItem>
+      <SelectItem value="lecture">Lecture</SelectItem>
+      <SelectItem value="secondary-lecture">Secondary Lecture</SelectItem>
+      <SelectItem value="lab">Lab</SelectItem>
     </SelectContent>
   </Select>
 }

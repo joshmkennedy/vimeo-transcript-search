@@ -10,3 +10,5 @@ export function formatTime(time: number) {
   timestamp += `${seconds < 10 ? "0" + seconds : seconds}`;
   return timestamp;
 }
+
+

@@ -1,35 +1,80 @@
 import { createRoot } from 'react-dom/client';
 import "./app.css";
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import { AimVideoSelection } from './video-selector';
+import type { PlayerApi } from '../aim-clip-player';
+import { ResourceList } from './resources';
 
-type AimClipPlayerProps = {
-  player: Vimeo;
+export type Video = {
   vimeoId: string;
-  times: {
-    start: number;
-    end: number;
-  };
-  toastMessage: string | { heading: string, message: string };
+  start: number;
+  end: number;
+  clipId: string;
+  summary: string;
+  name: string;
+  image_url: string;
 };
 
-function App({ player, vimeoId, times, toastMessage }: AimClipPlayerProps) {
-  const alreadyToasted = useRef(false);
-  console.log("re-rendered");
-  useEffect(() => {
-    player.on("timeupdate", (timeEvent) => {
-      if (Math.round(timeEvent.seconds) >= times.end && alreadyToasted?.current == false) {
-        alreadyToasted.current = true;
-        watchedVideoNotification(toastMessage);
-      }
-    })
-  }, [player, times])
+export type Resource = {
+  label: string;
+  link: string;
+};
+
+export type AimClipPlayerProps = {
+  playerApi: PlayerApi;
+  videos: Video[];
+  selectedVideo: string;
+  resources: Resource[];
+};
+
+function App({ playerApi, videos, resources, selectedVideo: defaultSelectedVideo}: AimClipPlayerProps) {
+  const [selectedClipId, setSelectedClipId] = useState(defaultSelectedVideo);
+  const [finishedVideos, setFinishedVideos] = useState<Video["clipId"][]>([]);
+  const selectedVideo = useMemo(() => (videos.length ? videos.find(v => v.clipId === selectedClipId) : videos[0]), [videos, selectedClipId]);
+
+  console.log("re-rendered", videos, finishedVideos.length);
+  const addVideoCompleted = useCallback((clipId: string) => {
+    setFinishedVideos((f) => [...f, clipId]);
+  }, [setFinishedVideos]);
+
+  function setVideo(id:string){
+    setSelectedClipId(id);
+    const video = videos.find(v => v.clipId === id);
+    if(video){
+      playerApi.setCurrentVideo(video);
+    }
+  }
+
+  const onVideoFinished = useCallback((e: any)=>{
+    if(finishedVideos.includes(e.detail.clipId)){
+      return;
+    } 
+    addVideoCompleted(e.detail.clipId);
+    watchedVideoNotification();
+  }, [finishedVideos])
+
+  useEffect(()=>{
+    console.log("adding event listener");
+    playerApi.getPlayerEl().addEventListener("finishedVideo", onVideoFinished);
+    return ()=>{
+      console.log("removing event listener");
+      playerApi.getPlayerEl().removeEventListener("finishedVideo", onVideoFinished);
+    }
+  },[onVideoFinished])
 
   useEffect(() => {
+    if(!selectedVideo){
+      return;
+    }
+    playerApi.setCurrentVideo(selectedVideo);
   }, [])
   return (
     <div>
-      {/* <AimClipToolbar /> */}
+      <div className="">
+        {selectedVideo && <AimVideoSelection selectedVideo={selectedVideo} setSelectedVideo={setVideo} videos={videos} />}
+        <ResourceList resources={resources} />
+      </div>
       <Toaster
         containerStyle={{ top: '100px' }}
         toastOptions={{
@@ -45,19 +90,18 @@ export function mountReactApp(el: HTMLElement, props: AimClipPlayerProps) {
   root.render(<App {...props} />);
 }
 
-function watchedVideoNotification(toastMessage:AimClipPlayerProps['toastMessage']){
-      toast(() => {
-      if (typeof toastMessage !== "string") {
-        return (<div className="toast-content">
-          <div className="toast-heading">{toastMessage.heading}</div>
-          <div className="toast-text">{toastMessage.message}</div>
-        </div>)
-      }
-      return (<div className="toast-content">
-        {toastMessage}
-      </div>)
-    }, {
-      icon: "🎉",
-      duration: 5000,
-    });
+const toastMarkup = {
+  heading: `You have completed the currated clip!`,
+  message: `Keep watching to go deeper and learn more about this topic.`,
+}
+function watchedVideoNotification() {
+  toast(() => {
+    return (<div className="toast-content">
+      <div className="toast-heading">{toastMarkup.heading}</div>
+      <div className="toast-text">{toastMarkup.message}</div>
+    </div>)
+  }, {
+    icon: "🎉",
+    duration: 5000,
+  });
 }

@@ -6,6 +6,7 @@ use Jk\Vts\Services\AimClipList\ClipListCSVParser;
 use \Jk\Vts\Services\AimClipList\ClipListMeta;
 use Jk\Vts\Services\AiSummarize;
 use Jk\Vts\Services\Cache;
+use Jk\Vts\Services\Email\PreviewClipListEmail;
 use Jk\Vts\Services\Logging\LoggerTrait;
 use Jk\Vts\Services\TranscriptChunk;
 
@@ -298,6 +299,40 @@ class ACLEditor {
         }
     }
 
+    function generateEmailPreview(\WP_REST_Request $request) {
+        $body = json_decode($request->get_body(), true);
+        if(!isset($body['postId']) || !isset($body['content'])) {
+            return new \WP_Error('invalid_body', 'Request body is missing or invalid.', ['status' => 400]);
+        }
+
+        if(!isset($body['videos'])){
+            return new \WP_Error('invalid_body', 'Request body is missing videos or invalid.', ['status' => 400]);
+        }
+        $videos = $body['videos'];
+        if(!is_array($videos) || !collect($videos)->every(fn($video)=> isset($video['image_url']) && isset($video['summary']) && isset($video['video_type']) && isset($video['title']) && isset($video['vimeoId']))){
+            return new \WP_Error('invalid_body', 'Request body is missing videos are missing properties needed for the email tempalte preview.', ['status' => 400]);
+        }
+
+        if(!isset($body['resources'])){
+            return new \WP_Error('invalid_body', 'Request body is missing resources or invalid.', ['status' => 400]);
+        }
+        $resources = $body['resources'];
+        if(!is_array($resources) || !collect($resources)->every(fn($resource)=> isset($resource['link']) && isset($resource['label']))){
+            return new \WP_Error('invalid_body', 'Request body\'s resources are missing properties needed for the email tempalte preview.', ['status' => 400]);
+        }
+
+        $email = new PreviewClipListEmail([
+            'title'=> "This weeks videos and resources",
+            'videos' => $videos,
+            'resources' => $resources,
+            'content'=> $body['content'],
+            'clipListId'=> $body['postId'],
+            'week_index'=> $body['week_index'],
+        ]);
+        $user = wp_get_current_user();
+        return rest_ensure_response($email->generateClipListEmail($user->user_email));
+    }
+
     // ** CONFIG FOR ROUTES **//
     public function getRoutes() {
         return [
@@ -343,6 +378,11 @@ class ACLEditor {
             $this->makeRoutePath('summarize-email') => [
                 'methods' => 'POST',
                 'callback' => [$this, 'summarizeEmail'],
+            ],
+
+            $this->makeRoutePath('email-preview') => [
+                'methods' => 'POST',
+                'callback' => [$this, 'generateEmailPreview'],
             ],
         ];
     }
