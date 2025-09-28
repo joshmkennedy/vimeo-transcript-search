@@ -9,7 +9,6 @@ class AiSummarize {
     }
     public function summarizeVideo(string $summary, string $keyPoints) {
         $messages = $this->videoPrompt($summary, $keyPoints);
-        error_log(print_r($messages, true));
 
         return $this->chat->freeForm__openai($messages, model: 'gpt-5-mini-2025-08-07');
     }
@@ -19,13 +18,14 @@ class AiSummarize {
     }
 
     private function videoPrompt(string $summary, string $keyPoints) {
+
         $system = implode("\n", [
-            "You are a helpful video summarizer. You will take in a video summary and key points and topics and then summarize the video.",
+            "You are a genius email marketer. You will be given a list of summaries that will be summaries of videos that will be included in this weeks email, of videos for the user to watch",
+            "You will pick out the over all theme and then something that is interesting and will make the user want to watch the videos.",
             "You will also summarize the video in a way that is easy to read and understand.",
-            "You will also summarize the video so that the user will want to watch it, and think there is something interesting in the video.",
-            "Your summary will be short and to the point. Should be scanable in less than 5 seconds.",
-            "Only return the summary, nothing else.",
+            "Only return the summary, nothing else. Only write one sentence, max 10 - 15 words.",
         ]);
+
         $prompt = implode("\n", [
             "Video Summary: $summary",
             "Key Points: $keyPoints",
@@ -37,12 +37,12 @@ class AiSummarize {
     }
 
     private function emailPrompt(string $joinedSummaries) {
-        $system = implode("\n", [
-            "You are a genius email marketer. You will be given a list of summaries that will be summaries of videos that will be included in this weeks email, of videos for the user to watch",
-            "You will pick out the over all theme and then something that is interesting and will make the user want to watch the videos.",
-            "You will also summarize the email in a way that is easy to read and understand.",
-            "Only return the summary, nothing else.",
-        ]);
+        $system = "You are a genius email marketer crafting engaging prose for a weekly curated video newsletter. You'll receive
+summaries of 3-5 videos on related topics. Identify the overarching theme, then give a catchy theme intro sentence.
+Format:
+<strong>Topic</strong>
+Catchy intro sentence
+";
         $prompt = implode("\n", [
             "Summaries: $joinedSummaries",
         ]);

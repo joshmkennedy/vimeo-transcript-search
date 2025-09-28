@@ -100,8 +100,8 @@ class ClipListEmail {
 
         return [
             'title' => $emailTitle,
-            'main_video' => $mainVideo,
-            'side_videos' => $sideVideos,
+            'main_video' => $mainVideo ? $mainVideo : [],
+            'side_videos' => $sideVideos ? $sideVideos : [],
             'links' => $links,
             'opt_out_user_link' => "",
         ];
@@ -117,10 +117,15 @@ class ClipListEmail {
     }
 
     public static function mainVideo($items, $createLink) {
+        if (count($items) == 0) {
+            return null;
+        }
         $main = array_find($items, fn($item) => isset($item['video_type']) && ($item['video_type'] == 'lecture'));
         if (!$main) {
-            throw new \Exception("No main video found");
+            // throw new \Exception("No main video found");
+            $main = $items[0];
         }
+
         return self::fmtVideoConfig($main, $createLink);
     }
 

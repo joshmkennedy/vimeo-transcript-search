@@ -111,7 +111,7 @@ export type WeekInfoType = {
   }[];
 }
 
-type WeekInfoRecords = Record<number, WeekInfoType>;
+export type WeekInfoRecords = Record<number, WeekInfoType>;
 
 
 export const WeekInfo = atom<WeekInfoRecords, [{ data: WeekInfoRecords, fromDb?: boolean }], void>(

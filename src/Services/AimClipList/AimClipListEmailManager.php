@@ -5,18 +5,18 @@ namespace Jk\Vts\Services\AimClipList;
 use Jk\Vts\Services\Email\ClipListEmail;
 use Jk\Vts\Services\Email\EmailService;
 use Jk\Vts\Services\Email\EmailServiceInterface;
+use Jk\Vts\Services\Logging\LoggerTrait;
 use Jk\Vts\Services\ScheduledJobs;
 
 class AimClipListEmailManager {
     const SEND_QUEUED_EMAILS_ACTION = 'send_queued_email';
+    use LoggerTrait;
     private ScheduledJobs $scheduledJobs;
     private ClipListMeta $meta;
     private AimClipListUserMeta $userMeta;
     private EmailServiceInterface $emailService;
     private array $cache;
     public function __construct(
-        public string $path,
-        public string $url,
     ) {
         $this->scheduledJobs = new ScheduledJobs();
         $this->meta = new ClipListMeta();
@@ -40,60 +40,71 @@ class AimClipListEmailManager {
             foreach ($emails as $emailName => $users) {
                 // @see the getSubscribedUsers method for what the user object looks like
                 foreach ($users as $userId => $user) {
-                    $user = (array)$user;
-                    $emailAddress = $user['user_email'];
-                    if (!$emailAddress) {
-                        error_log("No email address for user $userId");
-                        continue;
-                    }
-                    $clEmail = null;
-                    if (
-                        array_key_exists("$listId:$emailName", $this->cache)
-                        && isset($this->cache["$listId:$emailName"])
-                    ) {
-                        /** @var ClipListEmail $clEmail */
-                        $clEmail = $this->cache["$listId:$emailName"];
-                    } else {
-                        $clEmail = new ClipListEmail($listId, $emailName);
-                        $this->cache["$listId:$emailName"] = $clEmail;
-                    }
-
-                    $emailInfo = $this->meta->getEmailInfo($listId, $emailName);
-                    if (!$emailInfo) {
-                        error_log("No email info for user $listId:$emailName");
-                        continue;
-                    }
-                    $lastSent = $this->userMeta->getLastEmailSentForList($userId, $listId);
-
-                    $shouldSend = self::isEmailDue(
-                        $lastSent ? strtotime($lastSent[1]) : null,
-                        preg_match('/week_(\d+)/', $lastSent[0] ?? '', $matches) ? $matches[1] : "",
-                        (int)$emailInfo['sendTime'],
-                        preg_match('/week_(\d+)/', $emailName, $matches) ? $matches[1] : "",
-                        time()
-                    );
-
-                    if (!$shouldSend) {
-                        continue;
-                    }
-
-                    $config = $emailInfo['kind']== 'clipList' 
-                        ? $clEmail->generateClipListEmail($emailAddress)
-                        : $clEmail->generateTextBasedEmail($emailAddress);
-
-                    $args = [
-                        $listId,
-                        $emailName,
-                        $userId,
-                        $config,
-                    ];
+                    $this->log()->info("user is being queued email", $user);
+                    $args = $this->maybeBuildEmailConfig($listId, $emailName, $userId, $user);
+                    // The email may not be due to be sent. 
                     $this->scheduledJobs->scheduleOnce(time(), self::SEND_QUEUED_EMAILS_ACTION, $args);
                 }
             }
         }
     }
 
-    public function sendEmail(int $listId, string $emailName, int $userId, array $emailConfig) {
+    /**
+     * Queues the email for the user.
+     *
+     * @param int    $listId     The list id.
+     * @param string $emailName  The email name.
+     * @param int    $userId     The user id.
+     * @param array<{ ID: int, user_email: string, next_email: string, next_email_key: string, display_name: string }> $user  Array of user data.
+     *
+     * @return array<int, array<string,mixed>>|null Array of campaign config objects.
+     */
+    public function maybeBuildEmailConfig($listId, $emailName, $userId, $user) {
+        $user = $user;
+        $this->log()->info("user is being queued email", $user);
+        $emailAddress = $user['user_email'];
+        if (!$emailAddress) {
+            error_log("No email address for user $userId");
+            return null;
+        }
+
+        $emailInfo = $this->meta->getEmailInfo($listId, $emailName);
+        if (!$emailInfo) {
+            $this->log()->info("No email info for user $listId:$emailName");
+            return null;
+        }
+        if (!$this->userMeta->getSubscriptionStatus($userId, $listId)) {
+            $this->log()->info("Tried to send an email to a User who is not subscribed to this listlist", ['userId' => $userId, 'listId' => $listId]);
+            return null;
+        }
+        $lastSent = $this->userMeta->getLastEmailSentForList($userId, $listId);
+        $shouldSend = self::isEmailDue(
+            $lastSent ? strtotime($lastSent[1]) : null,
+            preg_match('/week_(\d+)/', $lastSent[0] ?? '', $matches) ? $matches[1] : "",
+            (int)$emailInfo['sendTime'],
+            preg_match('/week_(\d+)/', $emailName, $matches) ? $matches[1] : "",
+            time()
+        );
+
+        if (!$shouldSend) {
+            $this->log()->info("Email is not due to be sent");
+            return null;
+        }
+
+        $args = [
+            $listId, // list id
+            $emailName,
+            $emailAddress,
+            $user, // email address
+        ];
+        return $args;
+    }
+
+    public function sendEmail(int $listId, string $emailName, $emailAddress, $user){
+        $userId = $user['ID'];
+        $weekIndex = $this->meta->getWeekIdx($emailName);
+        $clipLisEmail = new ClipListEmail($listId, $weekIndex);
+        $emailConfig = $clipLisEmail->generateClipListEmail($emailAddress);
         // send the email
         $this->emailService->send(
             $emailConfig['emailAddress'],

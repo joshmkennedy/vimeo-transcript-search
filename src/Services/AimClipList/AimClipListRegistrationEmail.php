@@ -31,6 +31,16 @@ class AimClipListRegistrationEmail {
         ]);
     }
 
+    /**
+     * Sends the email to the user.
+     *
+     * TODO: listId may be for a list that has the same form id and so it wont check
+     *       if the user has already subscribed to a list that was for the same form.
+     *
+     * @param int    $listId     The list id.
+     * @param int    $userId     The user id.
+     * @param string $content    The email content.
+     **/
     public function sendEmail(int $listId, int $userId, string $content) {
         $user = get_user_by('id', $userId);
         $usersLists = $this->userMeta->getSubscribedLists($userId);

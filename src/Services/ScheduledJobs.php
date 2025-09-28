@@ -27,12 +27,12 @@ class ScheduledJobs {
     }
 
     public function scheduleOnce(int $timestamp, string $hook, array $args = []) {
-        if (! as_has_scheduled_action($hook)) {
+        // if (! as_has_scheduled_action($hook, $args)) {
             as_schedule_single_action(
                 $timestamp,
                 $hook,
                 $args
             );
-        }
+        // }
     }
 }

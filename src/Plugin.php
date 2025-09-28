@@ -123,6 +123,11 @@ class Plugin {
             'register'
         ]);
 
+        // User Cliplist table
+        add_action('edit_user_profile', [new \Jk\Vts\Admin\UserClipListPage(), 'render_table']);
+        add_action('show_user_profile', fn($user) => user_can($user, "manage_options") ? (new \Jk\Vts\Admin\UserClipListPage())->render_table($user) : "");
+
+
         // override edit post link for aim clip list allowing for our custom editor
         add_filter(
             'get_edit_post_link',
@@ -191,14 +196,16 @@ class Plugin {
         // queue clip list emails
         add_action(
             \Jk\Vts\Actions\AimClipListJobs::SEND_EMAILS_ACTION,
-            [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'queueEmails']
+            [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'queueEmails'],
+            10,
+            0
         );
         // send queued clip list email
         add_action(
             \Jk\Vts\Services\AimClipList\AimClipListEmailManager::SEND_QUEUED_EMAILS_ACTION,
             [new \Jk\Vts\Services\AimClipList\AimClipListEmailManager($this->path, $this->url), 'sendEmail'],
             10,
-            3
+            4
         );
         // send queued registration email
         add_action(

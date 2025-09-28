@@ -13,7 +13,7 @@ import type { AiVimeoResult } from "../types";
 import { Badge } from "@/components/ui/badge";
 import toast from "react-hot-toast";
 import { Provider, useAtom } from "jotai";
-import { API, AppState, ListItems, Resources, WeekInfo, type WeekInfoType } from "../store";
+import { API, AppState, ListItems, Resources, WeekInfo, type WeekInfoRecords, type WeekInfoType } from "../store";
 import { FormInput } from "@/components/ui/form-input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EllipsisVertical } from "lucide-react";
@@ -42,7 +42,7 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
     videos: AiVimeoResult[],
     resources: { link: string, label: string; }[],
     introContent: string,
-		weekIndex: string,
+    weekIndex: string,
   ) {
 
     const response = await api.post('/email-preview', {
@@ -56,10 +56,10 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
           title: v.name,
           summary: v.summary,
           video_type: v.video_type,
-					clip_id: v.clip_id,
+          clip_id: v.clip_id,
         }
       }),
-			week_index: weekIndex,
+      week_index: weekIndex,
     })
     if (response.code) {
       toast.error(response.message);
@@ -82,10 +82,10 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
     setEmailConfig(email)
   }
 
-	function handleAccordionValueChange(week: string) {
-		setActiveWeek(Number(week));
-		setEmailConfig(undefined);
-	}
+  function handleAccordionValueChange(week: string) {
+    setActiveWeek(Number(week));
+    setEmailConfig(undefined);
+  }
 
   async function buildResources() {
     const data = await api.post('/build-resources', {
@@ -172,7 +172,7 @@ function PreviewEmailDisplay({ email }: { email: { subject: string, content: str
     <header className="border-b">
       <h1>{email.subject}</h1>
     </header>
-		<iframe srcDoc={email.content} width="100%" style={{height: "70vh"}} title={email.subject}></iframe>
+    <iframe srcDoc={email.content} width="100%" style={{ height: "70vh" }} title={email.subject}></iframe>
   </div>
 }
 
@@ -367,16 +367,13 @@ export function WeekInfoEditor({ weekIndex }: { weekIndex: number }) {
     onSubmit={(e) => { e.preventDefault(); saveWeekInfo(weekIndex, localEmailInfo); }}
   >
     <div className="flex flex-row items-center gap-2 justify-end">
-      <Button onClick={() => toast.error("Not Implemented Yet")} className="bg-purple-50 text-purple-800 hover:bg-purple-100 hover:text-purple-900 ">
-        Generate Intro with Ai
-      </Button>
       <Button type="submit" variant="secondary">Save Intro</Button>
     </div>
     <FormInput>
       <Label className="text-sm font-bold">Week {weekIndex}'s Introduction to the Email</Label>
       <textarea
         placeholder="Week Intro"
-        className="rounded-sm w-full md:text-lg border-1 border-neutral-200 focus-visible:border-transparent h-auto font-medium focus-visible:ring-4 focus-visible:ring-blue-200/35"
+        className="min-h-[200px] rounded-sm w-full md:text-lg border-1 border-neutral-200 focus-visible:border-transparent h-auto font-medium focus-visible:ring-4 focus-visible:ring-blue-200/35"
         value={localEmailInfo.textContent}
         onChange={(e) => setLocalEmailInfo({ ...localEmailInfo, textContent: e.target.value })}
       ></textarea>
@@ -394,20 +391,16 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
   const [isOpen, setIsOpen] = useState(false);
   const [currentState, setCurrentState] = useState<"confirm" | "progress" | "finished">("confirm");
 
-  const videos = useMemo(() => {
-    return items.filter(item => weeks.includes(item.week_index ?? -1));
-  }, [weeks]);
-
-  const handleIncMessageCount = useCallback(() => setSeenMessageCount(prev => prev + 1), [setSeenMessageCount]);
-
   const weekHasIntro = (weekIndex: number) => {
     const content = weekInfo[weekIndex]?.emails[0]?.textContent;
     return (content?.length && content !== defaultWeekInfo(weekIndex).emails[0]!.textContent);
   }
 
-  async function handleAddAiSummary() {
-    // if we overwrite then return all the emails and their videos else only the ones that don't have an intro/have the
-    // default intro
+  const {
+    aiEmailsToCreate,
+    aiVideosToCreate,
+  } = useMemo(() => {
+    const videos = items.filter(item => weeks.includes(item.week_index ?? -1));
     const aiEmails = (overwrite ? weeks : weeks.filter(weekIndex => !weekHasIntro(weekIndex)))
       .map(weekIndex => ({
         weekIndex: `week_${weekIndex}`,
@@ -424,7 +417,20 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
         clipId: v.clip_id,
         summary: undefined,
       }))
-    aiRequestManager.setWork({ videos: aiVideos, emails: aiEmails });
+
+    return {
+      aiEmailsToCreate: aiEmails,
+      aiVideosToCreate: aiVideos,
+    }
+  }, [weeks, overwrite, items])
+
+  const handleIncMessageCount = useCallback(() => setSeenMessageCount(prev => prev + 1), [setSeenMessageCount]);
+
+
+  async function handleAddAiSummary() {
+    // if we overwrite then return all the emails and their videos else only the ones that don't have an intro/have the
+    // default intro
+    aiRequestManager.setWork({ videos: aiVideosToCreate, emails: aiEmailsToCreate });
     await aiRequestManager.start(overwrite);
   }
 
@@ -443,6 +449,8 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
   }
 
   const updateWithAiResults = useCallback(({ videos, emails }: { videos: AiVideo[], emails: AiEmail[] }) => {
+    console.log("before update", weekInfo);
+
     const clipIds = videos.map(v => v.clipId);
     const newItems = items.map(item => {
       if (clipIds.includes(item.clip_id)) {
@@ -455,12 +463,15 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
       data: newItems,
     })
 
-    const newWeekInfo = Object.entries(weekInfo).map(([index, weekInfoItem]) => {
+    const newWeekInfo = Object.entries(weekInfo).reduce((newWeekInfo, [index, weekInfoItem]) => {
       if (weeks.includes(Number(index))) {
         weekInfoItem.emails[0]!.textContent = emails.find(e => e.weekIndex === `week_${index}`)?.summary ?? "";
       }
-      return weekInfoItem;
-    })
+      newWeekInfo[Number(index)] = weekInfoItem;
+      return newWeekInfo;
+    }, {} as WeekInfoRecords)
+
+    console.log("after update", newWeekInfo);
 
     setWeekInfo({
       data: newWeekInfo
@@ -534,6 +545,10 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
     {btnText}
   </Button>;
 
+  const dialogTitle = titleBasedOnState(currentState, aiEmailsToCreate.length, aiVideosToCreate.length);
+  const dialogDescription = dialogDescriptionBasedOnState(currentState, aiEmailsToCreate.length, aiVideosToCreate.length, Boolean(overwrite));
+  const showingGenerateSummariesButton = shouldShowGenerateSummariesButton(currentState, aiVideosToCreate.length);
+
   return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
     <DialogTrigger asChild>
       {button}
@@ -541,19 +556,10 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
     <DialogContent>
       <DialogHeader>
         <DialogTitle className="mb-0">
-          {currentState == "finished"
-            ? "Finished"
-            : currentState == "confirm"
-              ? "Ready?"
-              : `Generating Summaries for ${weeks.length} Week Intros, and ${videos.length} Video Summaries`}
+          {dialogTitle}
         </DialogTitle>
         <DialogDescription>
-          {currentState == "finished"
-            ? "The summaries have been added to this week, please review."
-            : currentState == "confirm"
-              ? "This will replace the summary and all the videos in this weeks email, are you sure you want to continue?"
-              : "Please wait, and dont close this window while the AI generates the summary for this weeks email and video."
-          }
+          {dialogDescription}
         </DialogDescription>
       </DialogHeader>
       {
@@ -563,15 +569,35 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
               <Progress value={Math.floor((progress.done / progress.total) * 100)} className="w-full" />
             </div>
           </div>
-        ) : (
-          <Button onClick={handleConfirm} >
-            Generate Summaries
-          </Button>
-        )}
+        ) : null}
+
+      {showingGenerateSummariesButton ?
+        <Button onClick={handleConfirm} >
+          Generate Summaries
+        </Button> : null}
+
       {currentState == "finished" ?
         <div>
           <Button size={"sm"} onClick={() => setIsOpen(false)}>Close</Button>
         </div> : null}
     </DialogContent>
   </Dialog>
+}
+
+function titleBasedOnState(currentState: "finished" | "confirm" | "progress", aiEmailsToCreate: number, aiVideosToCreate: number) {
+  if (currentState == "finished") return "Finished";
+  if (currentState == "confirm" && aiVideosToCreate <= 0) return "No Videos to Summarize";
+  if (currentState == "confirm") return "Ready?"
+  return `Generating Summaries for ${aiEmailsToCreate} Email Intros, and ${aiVideosToCreate} Video Summaries`
+}
+function dialogDescriptionBasedOnState(currentState: "finished" | "confirm" | "progress", aiEmailsToCreate: number, aiVideosToCreate: number, overwrite: boolean) {
+  if (currentState == "finished") return "The summaries have been added to this week, please review.";
+  if (currentState == "confirm" && aiVideosToCreate <= 0 && overwrite == false) return "This button wont override content already set, if you wish to override the content, then you must go into each of the weeks and click the generate summary button for that one week";
+  if (currentState == "confirm" && aiVideosToCreate <= 0 && overwrite == true) return "Couldnt find any videos to summarize, does this week have any videos?";
+
+  if (currentState == "confirm") return "This will replace the summary and all the videos in this weeks email, are you sure you want to continue?";
+  return `Please wait, and dont close this window while the AI generates the summary for this weeks email and video.`
+}
+function shouldShowGenerateSummariesButton(currentState: "finished" | "confirm" | "progress", aiVideosToCreate: number) {
+  return currentState == "confirm" && aiVideosToCreate > 0
 }

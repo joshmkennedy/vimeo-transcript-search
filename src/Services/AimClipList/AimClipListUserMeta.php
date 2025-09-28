@@ -12,17 +12,73 @@ class AimClipListUserMeta {
     }
 
     public function getSubscribedLists($userId) {
-        return get_user_meta($userId, self::PREFIX . $this->subscribed_lists, true) ?: [];
+        $meta = get_user_meta($userId, self::PREFIX . $this->subscribed_lists, true);
+        if (!is_array($meta)) {
+            return [];
+        }
+        // For now, return as-is (legacy bools or new arrays); post-migration, all will be arrays
+        // Optional: Log if mixed types detected
+        foreach ($meta as $listId => $value) {
+            if (is_bool($value)) {
+                error_log("Legacy bool subscription detected for user $userId, list $listId; migrate soon.");
+            }
+        }
+        return $meta;
+    }
+    public function getSubscriptionStatus(int $userId, int $list) {
+        $lists = $this->getSubscribedLists($userId);
+        if (!isset($lists[$list])) {
+            return 'not_subscribed';
+        }
+        $value = $lists[$list];
+        if (is_bool($value)) {
+            return $value ? 'active' : 'inactive';
+        }
+
+        if (isset($value['subscribed_on']) && (!isset($value['finished_on']) || $value['finished_on'] === null)) {
+            return 'active';
+        } else {
+            return 'inactive';
+        }
     }
 
+    public function getSubscriptionDate(int $userId, int $list) {
+        $lists = $this->getSubscribedLists($userId);
+        if (!isset($lists[$list])) {
+            return null;
+        }
+        $value = $lists[$list];
+        if (is_bool($value)) {
+            if ($value === true) {
+                // Fallback to earliest email or current time
+                $emails = $this->getReceivedEmailsForList($userId, $list);
+                if (!empty($emails)) {
+                    $earliest = min(array_map('strtotime', array_values($emails)));
+                    return $earliest;
+                }
+                return time();
+            }
+            return null;
+        }
+        return $value['subscribed_on'] ?? null;
+    }
+
+
     private function setSubscribedList($userId, array $list) {
+        // Optional: Validate structure
+        foreach ($list as $listId => $data) {
+            if (!is_array($data) || !isset($data['subscribed_on'])) {
+                throw new \InvalidArgumentException("Invalid subscription structure for list $listId");
+            }
+        }
         return update_user_meta($userId, self::PREFIX . $this->subscribed_lists, $list);
     }
 
     public function addSubscribedList($userId, int $list) {
-        $lists = $this->getSubscribedLists($userId) ?: [];
-        if (! array_key_exists($list, $lists) || $lists[$list] === false) {
-            $lists[$list] = true;
+        $lists = $this->getSubscribedLists($userId);
+        $isActive = $this->getSubscriptionStatus($userId, $list) === 'active';
+        if (!$isActive) {
+            $lists[$list] = ['subscribed_on' => time(), 'finished_on' => null];
             $this->setSubscribedList($userId, $lists);
         }
         return $lists;
@@ -30,21 +86,35 @@ class AimClipListUserMeta {
 
     public function removeSubscribedList(int $userId, int $list) {
         $lists = $this->getSubscribedLists($userId);
-        if (array_key_exists($list, $lists) && $lists[$list] === true) {
-            $lists[$list] = false;
-            $this->setSubscribedList($userId, $lists);
+        if (isset($lists[$list])) {
+            $isActive = is_bool($lists[$list]) ? $lists[$list] : (isset($lists[$list]['finished_on']) && $lists[$list]['finished_on'] === null);
+            if ($isActive) {
+                if (is_bool($lists[$list]) && $lists[$list] === true) {
+                    $lists[$list] = ['subscribed_on' => time(), 'finished_on' => time()];
+                } else {
+                    $lists[$list]['finished_on'] = time();
+                }
+                $this->setSubscribedList($userId, $lists);
+            }
         }
         return $lists;
     }
 
     public function hasSubscribedList(int $userId, int $list) {
         $lists = $this->getSubscribedLists($userId);
-        return array_key_exists($list, $lists) && $lists[$list] === true;
+        if (!isset($lists[$list])) {
+            return false;
+        }
+        $value = $lists[$list];
+        if (is_bool($value)) {
+            return $value === true;
+        }
+        return isset($value['finished_on']) && $value['finished_on'] === null;
     }
 
 
     public function getReceivedEmails($userId) {
-        return get_user_meta($userId, self::PREFIX . $this->received_emails, true);
+        return (array)get_user_meta($userId, self::PREFIX . $this->received_emails, true);
     }
 
     private function setReceivedEmails($userId, array $emails) {
@@ -54,7 +124,7 @@ class AimClipListUserMeta {
     public function addReceivedEmail(int $userId, int $listId, string $emailName) {
         $emailFullName = $listId . ':' . $emailName;
         $emails = $this->getReceivedEmails($userId);
-        if (! array_key_exists($emailFullName, $emails)) {
+        if (!is_array($emails) || ! array_key_exists($emailFullName, $emails)) {
             $emails[$emailFullName] = date('Y-m-d H:i:s');
             $this->setReceivedEmails($userId, $emails);
         }
@@ -62,7 +132,7 @@ class AimClipListUserMeta {
     }
 
     public function getReceivedEmailsForList(int $userId, int $listId) {
-        $emails = $this->getReceivedEmails($userId);
+        $emails = (array)$this->getReceivedEmails($userId);
         $emailsForList = [];
         foreach ($emails as $emailFullName => $date) {
             if (strpos($emailFullName, $listId . ':') === 0) {

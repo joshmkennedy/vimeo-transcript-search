@@ -97,7 +97,7 @@ class ClipListMeta {
                 }
                 if (!is_string($email['email']) || !str_starts_with($email['email'], $slug)) {
                     error_log("email name is corrupt");
-                    throw new \Exception("email name is corrupt, {$email['email']}");
+                    throw new \Exception("email name is corrupt, {$email['email']}, should have started with {$slug}");
                 }
                 if (!isset($email['kind'])) {
                     throw new \Exception("email kind is missing");
@@ -374,19 +374,22 @@ class ClipListMeta {
     public function getEmailInfo(int $listId, string $emailName) {
         $weekIdx = $this->getWeekSlug($emailName);
         if (!$weekIdx) {
+            $this->log()->info("No week index found for email name $emailName");
             return null;
         }
-        $weekInfo = $this->getWeeksInfo($listId);
-
-        $key = array_search($weekIdx, $weekInfo);
-        if (!isset($weekInfo[$key]) || !isset($weekInfo[$key]['emails'])) {
-            return null;
+        $clipListInfo = $this->getWeeksInfo($listId);
+        $weekInfo = array_find($clipListInfo, fn($week) => $week['week_index'] === $weekIdx);
+        if (!$weekInfo) {
+            $this->log()->info("No week info found for user $listId:$weekIdx");
         }
-        $email = array_find($weekInfo[$key]['emails'], fn($email) => $email['email'] === $emailName);
+        $email = array_find($weekInfo['emails'], fn($email) => $email['email'] === $emailName);
+        if (!$email) {
+            $this->log()->info("No email found for user $listId:$emailName");
+        }
         return $email;
     }
 
-    private function getWeekSlug(string $emailName) {
+    public function getWeekSlug(string $emailName) {
         if (strpos($emailName, 'week_') !== 0) {
             error_log("Email name $emailName does not start with week_");
             return null;

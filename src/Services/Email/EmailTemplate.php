@@ -226,43 +226,47 @@ class EmailTemplate {
         <!-- Full width image -->
         <?php
         $mainVideo = $config['main_video'];
-        $this->fullWidthRow(
-            fn() => $this->imageCardMarkup(
-                link: $mainVideo['link'],
-                text: "Watch this video",
-                imageUrl: $mainVideo['image_url'],
-                description: $mainVideo['summary'],
-                imageStyles: null,
-                width: 600,
-                title: $mainVideo['title'],
-            ),
-        ); ?>
+        if ($mainVideo && isset($mainVideo['link'])) {
+            $this->fullWidthRow(
+                fn() => $this->imageCardMarkup(
+                    link: $mainVideo['link'],
+                    text: "Watch this video",
+                    imageUrl: $mainVideo['image_url'],
+                    description: $mainVideo['summary'],
+                    imageStyles: null,
+                    width: 600,
+                    title: $mainVideo['title'],
+                ),
+            );
+        } ?>
         <!-- Two side-by-side images -->
         <?php
-        $sideVideos = collect($config['side_videos'])->chunk(2)->toArray();
-        foreach ($sideVideos as $sides): ?>
-            <?php $sideVideoPair = array_values($sides); ?>
+        if (count($config['side_videos']) > 0) {
+            $sideVideos = collect($config['side_videos'])->chunk(2)->toArray();
+            foreach ($sideVideos as $sides): ?>
+                <?php $sideVideoPair = array_values($sides); ?>
         <?= $this->twoColumnRow(
-                fn() => isset($sideVideoPair[0]) ? $this->imageCardMarkup(
-                    link: $sideVideoPair[0]['link'],
-                    text: "Watch this video",
-                    description: $sideVideoPair[0]['summary'],
-                    imageUrl: $sideVideoPair[0]['image_url'],
-                    imageStyles: null,
-                    width: 290,
-                    title: $sideVideoPair[0]['title'],
-                ) : "",
-                fn() => isset($sideVideoPair[1]) ? $this->imageCardMarkup(
-                    link: $sideVideoPair[1]['link'],
-                    text: "Watch this video",
-                    imageUrl: $sideVideoPair[1]['image_url'],
-                    imageStyles: null,
-                    description: $sideVideoPair[1]['summary'],
-                    width: 290,
-                    title: $sideVideoPair[1]['title'],
-                ) : "",
-            );
-        endforeach;
+                    fn() => isset($sideVideoPair[0]) ? $this->imageCardMarkup(
+                        link: $sideVideoPair[0]['link'],
+                        text: "Watch this video",
+                        description: $sideVideoPair[0]['summary'],
+                        imageUrl: $sideVideoPair[0]['image_url'],
+                        imageStyles: null,
+                        width: 290,
+                        title: $sideVideoPair[0]['title'],
+                    ) : "",
+                    fn() => isset($sideVideoPair[1]) ? $this->imageCardMarkup(
+                        link: $sideVideoPair[1]['link'],
+                        text: "Watch this video",
+                        imageUrl: $sideVideoPair[1]['image_url'],
+                        imageStyles: null,
+                        description: $sideVideoPair[1]['summary'],
+                        width: 290,
+                        title: $sideVideoPair[1]['title'],
+                    ) : "",
+                );
+            endforeach;
+        }
         ?>
         <!-- List of links -->
         <?php $this->linkListMarkup("This weeks resources", $config['links']); ?>

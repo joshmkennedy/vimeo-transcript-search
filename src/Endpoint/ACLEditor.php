@@ -278,6 +278,10 @@ class ACLEditor {
             return new \WP_Error('invalid_body', 'Request body is missing or is invalid.', ['status' => 400]);
         }
 
+        if (!isset($body['bypassCache'])) {
+            $this->log()->info("summarizing email, and bypassCache is set", [$body['bypassCache']]);
+        }
+
         $aiSummarize = new AiSummarize();
         $cache = new Cache(
             fn($info) => "ai-week-email-summary-{$info['weekIndex']}-{$info['postId']}",
