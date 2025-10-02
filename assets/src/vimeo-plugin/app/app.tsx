@@ -47,6 +47,7 @@ function App({ playerApi, videos, resources, selectedVideo: defaultSelectedVideo
   }
 
   const onVideoFinished = useCallback((e: any)=>{
+    console.log("video finished", e.detail.clipId);
     if(finishedVideos.includes(e.detail.clipId)){
       return;
     } 

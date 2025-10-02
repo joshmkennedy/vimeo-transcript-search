@@ -76,42 +76,45 @@ export class PlayerApi {
 
   constructor(private playerEl: HTMLElement) {
     this.player = new Vimeo(this.playerEl);
-    this.player.on("loaded", () => {
-      if (this.currentVideo) {
-        console.log("player loaded", this);
-        setTimeout(() => {
-          if (!this.currentVideo) {
-            return;
+  }
+
+  #loadTimeListener() {
+    console.log("adding timeupdate listener");
+    setTimeout(() => {
+      console.log("adding timeupdate listener", this.player);
+      this.player.on("timeupdate", (timeEvent) => {
+        console.log("timeupdate", timeEvent);
+        if (this.currentVideo) {
+          if (this.currentVideo.end <= timeEvent.seconds) {
+            this.playerEl.dispatchEvent(new CustomEvent("finishedVideo", { detail: this.currentVideo }));
           }
-          this.player.setCurrentTime(this.currentVideo.start).then(console.log).catch(console.error);
-        }, 500);
-      }
-    });
-    this.player.on("timeupdate", (timeEvent) => {
-      if (this.currentVideo) {
-        if (this.currentVideo.end <= timeEvent.seconds) {
-          this.playerEl.dispatchEvent(new CustomEvent("finishedVideo", { detail: this.currentVideo }));
         }
-      }
-    });
+      })
+    }, 100);
   }
 
   getPlayerEl() {
     return this.playerEl;
   }
 
-  setCurrentVideo(video: Video) {
+  async setCurrentVideo(video: Video) {
+    console.log("setting current video", video.clipId);
+    const p = this.playerEl.parentElement!;
+    await this.player.destroy()
+    this.player.off("timeupdate")
+    console.log("destroyed player");
+    p.prepend(this.playerEl);
+    this.player = new Vimeo(this.playerEl);
+    console.log("created new player");
     this.currentVideo = video;
-    this.playerEl.setAttribute("src", `https://player.vimeo.com/video/${video.vimeoId}`);
-    this.#loadVideo();
+    await this.player.loadVideo(this.currentVideo.vimeoId);
+    console.log("loaded video", this.currentVideo.vimeoId);
+    console.log("player loaded", this);
+    await this.setCurrentTime();
+    this.#loadTimeListener();
   }
 
-  #loadVideo() {
-    setTimeout(() => {
-      if (!this.currentVideo) {
-        return;
-      }
-      this.player.setCurrentTime(this.currentVideo.start);
-    }, 500);
+  async setCurrentTime() {
+    await this.player.setCurrentTime(this.currentVideo?.start ?? 0);
   }
 }
