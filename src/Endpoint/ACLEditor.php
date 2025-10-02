@@ -251,7 +251,7 @@ class ACLEditor {
         $this->log()->info("getting the contents from the db for {$body['vimeoId']}:{$body['start']}-{$body['end']}...");
 
         try {
-            $tc = new TranscriptChunk()->get($body['vimeoId'], (int)$body['start'], (int)$body['end']);
+            $tc = (new TranscriptChunk())->get($body['vimeoId'], (int)$body['start'], (int)$body['end']);
             $info = [
                 'content' => $tc->concatOn('summary'),
                 'keypoints' => $tc->keyPoints(),

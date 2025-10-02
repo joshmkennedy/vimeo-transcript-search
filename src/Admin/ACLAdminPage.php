@@ -106,7 +106,7 @@ class ACLAdminPage {
             'weeksInfo' => $this->meta->getWeeksForEditor($id),
             'formId' => $this->meta->getFormId($id),
             'category' => $category,
-            'clipListCategories' => get_terms( ['taxonomy'=>'aim-clip-list-category','hide_empty' => false, 'fields'=>'id=>name']),
+            'clipListCategories' => get_terms(['taxonomy' => 'aim-clip-list-category', 'hide_empty' => false, 'fields' => 'id=>name']),
         ]);
     }
 
@@ -137,10 +137,10 @@ class ACLAdminPage {
     }
 
     public function renderPostEditor() {
-        echo <<<HTML
-        <div class="wrap">
-            <div id="aim-clip-list-editor-app"></div>
+        echo "
+        <div class='wrap'>
+            <div id='aim-clip-list-editor-app'></div>
         </div>
-HTML;
+";
     }
 }
