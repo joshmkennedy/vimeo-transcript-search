@@ -15,7 +15,7 @@ class EmailTemplate {
                 <tr>
                     <td align="center" style="padding-top:0px; padding-left: 10px; padding-right: 10px;">
                         <!-- Outer container -->
-                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff;">
+                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff; margin-bottom:20px; padding-bottom:20px;">
 
                             <?php $this->headerMarkup(
                                 title: $config['title'],
@@ -45,11 +45,11 @@ class EmailTemplate {
         <?php $this->docStart($config['title']); ?>
 
         <center>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="">
                 <tr>
-                    <td align="center" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                    <td align="center" style="padding-top:0px; padding-left: 10px; padding-right: 10px;">
                         <!-- Outer container -->
-                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff;">
+                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff; margin-bottom:20px;">
 
                             <?php $this->headerMarkup(
                                 title: $config['title'],
@@ -115,6 +115,16 @@ class EmailTemplate {
 
     public function docEnd() {
         ?>
+            <center style="color:#555555; font-size:13px;">
+                <p>Copyright © 2025 Pantana and Ferry, LLC, All rights reserved.</p>
+                <p><strong>Our mailing address is:</strong></br>
+                    Pantana and Ferry, LLC<br />
+                    101 Creekside Crossing<br />
+                    Ste 1700 PMB 122</br>
+                    Brentwood, TN 37027</br>
+                </p>
+            </center>
+
         </body>
 
         </html>
@@ -144,12 +154,14 @@ class EmailTemplate {
     ?>
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:20px auto; <?= $style; ?>">
             <tr>
-                <td align="center" bgcolor="#666666" style="border-radius:4px;">
+                <td align="center" bgcolor="#31dba5" style="border-radius:4px;">
                     <a href=" <?= $link; ?>"
                         target="_blank"
                         style="display:inline-block; 
                 font-family: Arial, sans-serif; 
+                text-transform:uppercase;
                 font-size:16px; 
+                font-weight:bold;
                 color:#ffffff; 
                 text-decoration:none; 
                 padding:12px 24px; 
@@ -325,7 +337,7 @@ class EmailTemplate {
 
     public function textLink($link, $text) {
     ?>
-        <p style="margin:0 0 10px;"><a href="<?= $link; ?>" style="color:#1a73e8; text-decoration:none;"><?= $text; ?></a></p>
+        <p style="margin:0 0 10px;"><a href="<?= $link; ?>" style="color:#1D5A8D; font-weight:bold; text-decoration:none;"><?= $text; ?></a></p>
     <?php
     }
 
@@ -334,9 +346,20 @@ class EmailTemplate {
     ?>
         <tr>
             <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                <p>These videos are short clips pulled from our full lectures and labs. They’re designed to quickly introduce you to the key ideas and give you a sense of the topics we cover inside AI Marketing Academy.</p>
+                <p>If a clip sparks your interest—or you feel like you need more context—feel free to dive into the full-length version to explore the subject in greater depth.</p>
+            </td>
+        </tr>
+        <tr>
+            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                <hr />
+            </td>
+        </tr>
+        <tr>
+            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
                 <p>You are receiving this email because you have opted in to receive emails from Ai Marketing Academy on a currated learning path.</p>
                 <?php if ($stoplink): ?>
-                    <p style="margin:0 0 10px;"><a href="<?= $stoplink; ?>" style="color:#333333;">Stop getting this learning path through email.</a></p>
+                    <p style="margin:0 0 10px; font-size:13px;"><a href="<?= $stoplink; ?>" style="color:#333333;">Stop getting this learning path through email.</a></p>
                 <?php endif; ?>
 
             </td>
