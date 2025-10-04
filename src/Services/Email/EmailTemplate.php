@@ -12,18 +12,18 @@ class EmailTemplate {
 
         <center>
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-
-                <?php $this->headerMarkup(
-                    title: $config['title'],
-                    imageUrl: $headerImage,
-                    imageStyles: null,
-                    imageAlt: "Ai Marketing Academy",
-                ); ?>
-
                 <tr>
-                    <td align="center" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                    <td align="center" style="padding-top:0px; padding-left: 10px; padding-right: 10px;">
                         <!-- Outer container -->
                         <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff;">
+
+                            <?php $this->headerMarkup(
+                                title: $config['title'],
+                                imageUrl: $headerImage,
+                                imageStyles: null,
+                                imageAlt: "Ai Marketing Academy",
+                            ); ?>
+
 
                             <?= $this->clipListContentMarkup($config); ?>
 
@@ -46,21 +46,19 @@ class EmailTemplate {
 
         <center>
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-
-                <?php $this->headerMarkup(
-                    title: $config['title'],
-                    imageUrl: $headerImage,
-                    imageStyles: null,
-                    imageAlt: "Ai Marketing Academy",
-                ); ?>
-
                 <tr>
                     <td align="center" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
                         <!-- Outer container -->
                         <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff;">
 
-                            <?= $this->textBasedContentMarkup($config); ?>
+                            <?php $this->headerMarkup(
+                                title: $config['title'],
+                                imageUrl: $headerImage,
+                                imageStyles: null,
+                                imageAlt: "Ai Marketing Academy",
+                            ); ?>
 
+                            <?= $this->textBasedContentMarkup($config); ?>
                         </table>
                     </td>
                 </tr>
@@ -93,6 +91,19 @@ class EmailTemplate {
                         width: 100% !important;
                         height: auto !important;
                         display: block;
+                    }
+
+                    .secondary-video-card {
+                        display: block;
+                        width: 100%;
+                    }
+
+                    .two-col {
+                        width: 100%;
+                    }
+
+                    .desktop-only {
+                        display: none;
                     }
                 }
             </style>
@@ -129,9 +140,9 @@ class EmailTemplate {
     <?php
     }
 
-    public function buttonMarkup($link, $text) {
+    public function buttonMarkup($link, $text, $style = "") {
     ?>
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:20px auto;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:20px auto; <?= $style; ?>">
             <tr>
                 <td align="center" bgcolor="#666666" style="border-radius:4px;">
                     <a href=" <?= $link; ?>"
@@ -202,11 +213,45 @@ class EmailTemplate {
         return ob_get_clean();
     }
 
+    function secondaryVideoCard($link, $title, $imageUrl, $text, $width, $imageStyles, $description) {
+        ob_start(); ?>
+        <tr>
+            <td>
+                <table role="presentation" cellspacing="0" cellpadding="10px" border="0" width="100%">
+                    <tr class="secondary-video-card">
+                        <td class="two-col img-col" width="25%" align="center" style="font-size:14px">
+                            <a href="<?= $link; ?>">
+                                <img src="<?= $imageUrl; ?>" alt="<?= $title; ?>" width="<?= $width; ?>" style="<?= $imageStyles; ?>">
+                            </a>
+                        </td>
+                        <!-- <td class="desktop-only" width="5%" align="center" style="font-size:14px"></td> -->
+                        <td class="two-col" width="65%" align="center" style="font-size:14px">
+
+                            <?php if ($description && $description !== ""): ?>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <p><?= $this->replaceNLWithBR($description); ?></p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            <?php endif; ?>
+
+                            <?php $this->buttonMarkup($link, $text, "margin-left:0;"); ?>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    <?php
+        return ob_get_clean();
+    }
+
     function headerMarkup($title, $imageUrl, $imageStyles, $imageAlt) {
     ?>
         <tr>
             <td align="center" style="padding-top:20px;">
-                <img src="<?= $imageUrl; ?>" alt="<?= $imageAlt; ?>" style="<?= $imageStyles ?: 'max-width:200px'; ?>" />
+                <img src="<?= $imageUrl; ?>" alt="<?= $imageAlt; ?>" style="max-width:100%;" />
                 <h1><?= $title; ?></h1>
             </td>
         </tr>
@@ -239,37 +284,26 @@ class EmailTemplate {
                 ),
             );
         } ?>
-        <!-- Two side-by-side images -->
+        <!-- image left content right list -->
         <?php
         if (count($config['side_videos']) > 0) {
-            $sideVideos = collect($config['side_videos'])->chunk(2)->toArray();
-            foreach ($sideVideos as $sides): ?>
-                <?php $sideVideoPair = array_values($sides); ?>
-        <?= $this->twoColumnRow(
-                    fn() => isset($sideVideoPair[0]) ? $this->imageCardMarkup(
-                        link: $sideVideoPair[0]['link'],
-                        text: "Watch this video",
-                        description: $sideVideoPair[0]['summary'],
-                        imageUrl: $sideVideoPair[0]['image_url'],
-                        imageStyles: null,
-                        width: 290,
-                        title: $sideVideoPair[0]['title'],
-                    ) : "",
-                    fn() => isset($sideVideoPair[1]) ? $this->imageCardMarkup(
-                        link: $sideVideoPair[1]['link'],
-                        text: "Watch this video",
-                        imageUrl: $sideVideoPair[1]['image_url'],
-                        imageStyles: null,
-                        description: $sideVideoPair[1]['summary'],
-                        width: 290,
-                        title: $sideVideoPair[1]['title'],
-                    ) : "",
-                );
-            endforeach;
-        }
-        ?>
+            foreach ($config['side_videos'] as $sideVideo): ?>
+
+                <?= $this->secondaryVideoCard(
+                    link: $sideVideo['link'],
+                    text: "Watch this video",
+                    description: $sideVideo['summary'],
+                    imageUrl: $sideVideo['image_url'],
+                    imageStyles: null,
+                    width: 290,
+                    title: $sideVideo['title'],
+                ); ?>
+            <?php endforeach; ?>
+        <?php } ?>
         <!-- List of links -->
-        <?php $this->linkListMarkup("This weeks resources", $config['links']); ?>
+        <?php if (count($config['links']) > 0): ?>
+            <?php $this->linkListMarkup("This weeks resources", $config['links']); ?>
+        <?php endif; ?>
 
         <?php $this->footerMarkup($config['opt_out_user_link']); ?>
 
