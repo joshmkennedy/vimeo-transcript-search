@@ -16,7 +16,7 @@ class GenericEmail {
         $this->config['textContent'] = $content;
 
         $content = $this->template->textBasedTemplate(
-            site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
+            site_url() . "/wp-content/uploads/2025/10/AiM-Email-Header.png",
             $this->config,
         );
         $this->emailService->send(
@@ -28,6 +28,4 @@ class GenericEmail {
             ],
         );
     }
-
-
 }

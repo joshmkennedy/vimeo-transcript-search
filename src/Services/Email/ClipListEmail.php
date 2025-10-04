@@ -18,24 +18,6 @@ class ClipListEmail {
         $this->emailService = new EmailService();
     }
 
-    // TODO: find out if we need this?
-    //
-    // public function send($emailAddress) {
-    //     $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
-    //     $content = $this->template->clipListTemplate(
-    //         site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
-    //         $this->config,
-    //     );
-    //     $this->emailService->send(
-    //         $emailAddress,
-    //         $this->config['title'],
-    //         $content,
-    //         [
-    //             'Content-Type: text/html; charset=UTF-8',
-    //         ],
-    //     );
-    // }
-
     public function generateClipListEmail($emailAddress) {
         $content = $this->generateClipListEmailContent($emailAddress);
         return [
@@ -51,7 +33,7 @@ class ClipListEmail {
     private function generateClipListEmailContent($emailAddress) {
         $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
         $content = $this->template->clipListTemplate(
-            site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
+            site_url() . "/wp-content/uploads/2025/10/AiM-Email-Header.png",
             $this->config,
         );
         return $content;
@@ -71,7 +53,7 @@ class ClipListEmail {
     private function generateTextBasedEmailContent($emailAddress) {
         $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
         $content = $this->template->textBasedTemplate(
-            site_url() . "/wp-content/uploads/2025/01/1-Mark@2x.png",
+            site_url() . "/wp-content/uploads/2025/10/AiM-Email-Header.png",
             $this->config,
         );
         return $content;
