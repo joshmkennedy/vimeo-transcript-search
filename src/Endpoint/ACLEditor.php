@@ -79,7 +79,7 @@ class ACLEditor {
         }
 
         $this->log()->info("saving meta");
-        $error = $this->meta->save($postId, $items, $resources, $weeksInfo, $formId ?? 19902);
+        $error = $this->meta->save($postId, $items, $resources, $weeksInfo, $formId ?? 21185);
         if (is_wp_error($error)) {
             return rest_ensure_response($error);
         }
@@ -172,7 +172,7 @@ class ACLEditor {
         $items = $body['items'];
         $post = $body['post'];
         $resources = $body['resources'] ?? [];
-        $formId = $body['formId'] ?? 19902;
+        $formId = $body['formId'] ?? 21185;
 
         $categoryId = $body['category'] ?? 74;
         $category = get_term((int)$categoryId, 'aim-clip-list-category');

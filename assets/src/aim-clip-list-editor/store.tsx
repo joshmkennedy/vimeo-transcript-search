@@ -37,7 +37,7 @@ export const AppStore = atom<AppStoreT>({
   items: [],
   resources: [],
   weeksInfo: {},
-	formId: 19902, // aim-100-days
+	formId: 21185, // aim-100-days
 	category:74, // beginner
 });
 
