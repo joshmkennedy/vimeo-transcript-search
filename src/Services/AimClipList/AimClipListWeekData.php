@@ -48,15 +48,15 @@ class AimClipListWeekData {
      *  }
      **/
     public function getVimeoPluginData():array {
-        $items = $this->meta->getItems($this->clipListId);
-        $this->log()->info("getting vimeo plugin data for {$this->clipListId}:{$this->weekIndex}",[$items]);
+        $introText = $this->meta->getEmailInfo($this->clipListId, 'week_' . $this->weekIndex . '_videos_for_this_week');
 
+        $items = $this->meta->getItems($this->clipListId);
         $items = collect($items)->reject(fn($item) => !isset($item['week_index']) || $item['week_index'] !== $this->weekIndex)->toArray();
-        $this->log()->info("getting vimeo plugin data for {$this->clipListId}:{$this->weekIndex}",[count($items)]);
         $videos = collect(VimeoInfoVideoList::getVideoInfoList($items));
         $selectedVideo = ($videos->first(fn($video)=>$video['video_type'] === 'lecture') ?? $videos->first())['clip_id'];
         $resources = collect($this->meta->getResources($this->clipListId))->reject(fn($item) => $item['week_index'] !== $this->weekIndex);
         return [
+            'intro' => $introText['textContent'],
             'videos' => $videos->map(fn($video) => [
                 'vimeoId' => $video['vimeoId'],
                 'start' => $video['start'],

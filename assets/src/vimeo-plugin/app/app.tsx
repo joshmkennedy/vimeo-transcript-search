@@ -22,6 +22,7 @@ export type Resource = {
 };
 
 export type AimClipPlayerProps = {
+  intro: string;
   playerApi: PlayerApi;
   videos: Video[];
   selectedVideo: string;
@@ -32,8 +33,7 @@ function App({ playerApi, videos, resources, selectedVideo: defaultSelectedVideo
   const [selectedClipId, setSelectedClipId] = useState(defaultSelectedVideo);
   const [finishedVideos, setFinishedVideos] = useState<Video["clipId"][]>([]);
   const selectedVideo = useMemo(() => (videos.length ? videos.find(v => v.clipId === selectedClipId) : videos[0]), [videos, selectedClipId]);
-
-  console.log("re-rendered", videos, finishedVideos.length);
+  
   const addVideoCompleted = useCallback((clipId: string) => {
     setFinishedVideos((f) => [...f, clipId]);
   }, [setFinishedVideos]);
@@ -47,7 +47,6 @@ function App({ playerApi, videos, resources, selectedVideo: defaultSelectedVideo
   }
 
   const onVideoFinished = useCallback((e: any)=>{
-    console.log("video finished", e.detail.clipId);
     if(finishedVideos.includes(e.detail.clipId)){
       return;
     } 
@@ -56,10 +55,8 @@ function App({ playerApi, videos, resources, selectedVideo: defaultSelectedVideo
   }, [finishedVideos])
 
   useEffect(()=>{
-    console.log("adding event listener");
     playerApi.getPlayerEl().addEventListener("finishedVideo", onVideoFinished);
     return ()=>{
-      console.log("removing event listener");
       playerApi.getPlayerEl().removeEventListener("finishedVideo", onVideoFinished);
     }
   },[onVideoFinished])
@@ -72,6 +69,7 @@ function App({ playerApi, videos, resources, selectedVideo: defaultSelectedVideo
   }, [])
   return (
     <div>
+      {selectedVideo && <p>{selectedVideo.summary}</p>}
       <div className="">
         {selectedVideo && <AimVideoSelection selectedVideo={selectedVideo} setSelectedVideo={setVideo} videos={videos} />}
         <ResourceList resources={resources} />

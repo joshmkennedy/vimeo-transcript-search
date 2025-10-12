@@ -25,7 +25,7 @@ export default class AimClipPlayer implements VimeoPluginInterface {
   }
 
   init() {
-    console.log("Starting the skip to clip plugin");
+
     this.loadPlayer();
   }
 
@@ -48,7 +48,7 @@ export default class AimClipPlayer implements VimeoPluginInterface {
     if (!this.loaded) {
       throw new Error("Vimeo Plugin has not been properly loaded, need to call loadPlayer before startPlugin");
     }
-    console.log("trying to mount app")
+
     this.mountApp()
   }
 
@@ -59,9 +59,10 @@ export default class AimClipPlayer implements VimeoPluginInterface {
     const wrapperEl = this.playerApi?.getPlayerEl()?.closest(".wp-block-embed");
     if (!wrapperEl) throw new Error("Could not find wrapper element");
     wrapperEl.appendChild(app);
-    console.log("App is now mounting");
+
     mountReactApp(app, {
       playerApi: this.playerApi!,
+      intro: window.aimVimeoPluginData.AimClipPlayerData.intro,
       videos: window.aimVimeoPluginData.AimClipPlayerData.videos,
       selectedVideo: window.aimVimeoPluginData.AimClipPlayerData.selectedVideo,
       resources: window.aimVimeoPluginData.AimClipPlayerData.resources,
@@ -79,11 +80,8 @@ export class PlayerApi {
   }
 
   #loadTimeListener() {
-    console.log("adding timeupdate listener");
     setTimeout(() => {
-      console.log("adding timeupdate listener", this.player);
       this.player.on("timeupdate", (timeEvent) => {
-        console.log("timeupdate", timeEvent);
         if (this.currentVideo) {
           if (this.currentVideo.end <= timeEvent.seconds) {
             this.playerEl.dispatchEvent(new CustomEvent("finishedVideo", { detail: this.currentVideo }));
@@ -98,18 +96,17 @@ export class PlayerApi {
   }
 
   async setCurrentVideo(video: Video) {
-    console.log("setting current video", video.clipId);
+
     const p = this.playerEl.parentElement!;
     await this.player.destroy()
     this.player.off("timeupdate")
-    console.log("destroyed player");
+
     p.prepend(this.playerEl);
     this.player = new Vimeo(this.playerEl);
-    console.log("created new player");
+
     this.currentVideo = video;
     await this.player.loadVideo(this.currentVideo.vimeoId);
-    console.log("loaded video", this.currentVideo.vimeoId);
-    console.log("player loaded", this);
+
     await this.setCurrentTime();
     this.#loadTimeListener();
   }
