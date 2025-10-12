@@ -54,8 +54,10 @@ class AimClipListRegistrationEmail {
     }
 
     public function getDefaultEmailContent() {
+        $introCourseURL = site_url() . '/aim/essentials';
         $content = "You have successfully registered for an AiM Starting Point.<br/><br/>";
-        $content .= "You will receive emails with videos and resources, currated for you based on your assessment to help you get started with Ai Marketing Academy.<br/><br/>";
+        $content .= "You will receive emails with videos and resources, currated for you based on your assessment to help you get started with Ai Marketing Academy.<br/>";
+        $content .= "In the meantime, if you have not already, make sure you check out the <a href='$introCourseURL'>AiM Essentials</a> course. It will give you everything you need to know to get the most out of Ai Marketing Academy.<br/>";
 
         $content .= "";
         return $content;

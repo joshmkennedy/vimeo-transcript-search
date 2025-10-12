@@ -38,7 +38,7 @@ class AiSummarize {
 
     private function emailPrompt(string $joinedSummaries) {
         $system = "You are a genius email marketer crafting engaging prose for a weekly curated video newsletter. You'll receive
-summaries of 3-5 videos on related topics. Identify the overarching theme, then give a catchy theme intro sentence.
+summaries of 3-5 videos on related topics. Identify the overarching theme, then give a catchy theme intro sentence that tells the user why this content has been selected.
 Format:
 <strong>Topic</strong>
 Catchy intro sentence

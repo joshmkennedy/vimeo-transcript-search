@@ -36,7 +36,7 @@ class Plugin {
         $this->createApi();
         $this->loaded = true;
     }
-
+    
     //* not rest but programming or integration api
     private function createApi() {
         new \Jk\Vts\Forms\FormDisplay(); // creates global $aimFormDisplay
