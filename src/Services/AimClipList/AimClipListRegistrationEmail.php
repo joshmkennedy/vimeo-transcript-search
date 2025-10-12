@@ -48,13 +48,13 @@ class AimClipListRegistrationEmail {
             return;
         }
         $emailAddress = $user->user_email;
-        $this->email->sendEmail($emailAddress, "You have successfully registered for an AiM Learning Path.", $content);
+        $this->email->sendEmail($emailAddress, "You have successfully registered for an AiM Starting Point.", $content);
         $nextEmail = "week_1_videos_for_this_week";
         $this->userMeta->setNextEmailForList($userId, $listId, $nextEmail);
     }
 
     public function getDefaultEmailContent() {
-        $content = "You have successfully registered for an AiM Learning Path.<br/><br/>";
+        $content = "You have successfully registered for an AiM Starting Point.<br/><br/>";
         $content .= "You will receive emails with videos and resources, currated for you based on your assessment to help you get started with Ai Marketing Academy.<br/><br/>";
 
         $content .= "";

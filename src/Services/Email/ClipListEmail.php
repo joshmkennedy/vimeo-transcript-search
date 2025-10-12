@@ -31,7 +31,7 @@ class ClipListEmail {
     }
 
     private function generateClipListEmailContent($emailAddress) {
-        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
+        $this->config['opt_out_user_link'] = $this->createOptoutLink();
         $content = $this->template->clipListTemplate(
             site_url() . "/wp-content/uploads/2025/10/AiM-Email-Header.png",
             $this->config,
@@ -51,7 +51,7 @@ class ClipListEmail {
         ];
     }
     private function generateTextBasedEmailContent($emailAddress) {
-        $this->config['opt_out_user_link'] = $this->createOptoutLink($emailAddress, $this->clipListId);
+        $this->config['opt_out_user_link'] = $this->createOptoutLink();
         $content = $this->template->textBasedTemplate(
             site_url() . "/wp-content/uploads/2025/10/AiM-Email-Header.png",
             $this->config,
@@ -72,7 +72,7 @@ class ClipListEmail {
 
         $videos = collect(VimeoInfoVideoList::getVideoInfoList($wkVideos))
             ->toArray();
-        $createLink = fn($clipid)=> get_site_url() . "/aim-learning-path/{$this->clipListId}/$weekIndex?clip_id=$clipid";
+        $createLink = fn($clipid) => get_site_url() . "/aim-learning-path/{$this->clipListId}/$weekIndex?clip_id=$clipid";
         $mainVideo = self::mainVideo($videos, $createLink);
         $sideVideos = self::sideVideos($videos, $createLink);
 
@@ -89,13 +89,13 @@ class ClipListEmail {
         ];
     }
 
-    public static function createOptoutLink($emailAddress, $clipListId) {
-        return get_rest_url('vts/v1/vts/opt-out-user') . "?email=$emailAddress&clip_list_id=$clipListId";
+    public static function createOptoutLink() {
+        return site_url("aim-learning-path-settings");
     }
 
     public static function sideVideos($items, $createLink) {
         $sides = collect($items)->filter(fn($item) => isset($item['video_type']) && ($item['video_type'] == 'secondary-lecture' || $item['video_type'] == 'lab'));
-        return $sides->map(fn($v) => self::fmtVideoConfig($v ,$createLink))->toArray();
+        return $sides->map(fn($v) => self::fmtVideoConfig($v, $createLink))->toArray();
     }
 
     public static function mainVideo($items, $createLink) {
@@ -111,7 +111,7 @@ class ClipListEmail {
         return self::fmtVideoConfig($main, $createLink);
     }
 
-    public static function linkToClipListPage($weekIndex, $id, $kind){
+    public static function linkToClipListPage($weekIndex, $id, $kind) {
         // todo: pull in from site option
         return get_site_url() . "/aim-learning-path/$weekIndex?id=$id&kind=$kind";
     }
@@ -128,8 +128,8 @@ class ClipListEmail {
     private static function fmtVideoConfig($item, $createLink) {
         // TODO: need to override the link because we dont want tolink to the player but the cliplist page.
         return [
-            'link' => isset($item['link']) ? $item['link']: ($createLink($item['clip_id'])),
-            'title' => isset($item['title']) ? $item['title']: $item['name'],
+            'link' => isset($item['link']) ? $item['link'] : ($createLink($item['clip_id'])),
+            'title' => isset($item['title']) ? $item['title'] : $item['name'],
             'summary' => isset($item['summary']) ? $item['summary'] : "",
             'image_url' => isset($item['image_url']) ? $item['image_url'] : $item['pictures']['base_link'],
         ];

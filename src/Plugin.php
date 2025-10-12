@@ -43,6 +43,9 @@ class Plugin {
 
         global $getAimClipListWeekData;
         $getAimClipListWeekData = fn($clipListId, $weekIndex) => new \Jk\Vts\Services\AimClipList\AimClipListWeekData($clipListId, $weekIndex);
+
+        global $aimClipListUserMeta;
+        $aimClipListUserMeta = new \Jk\Vts\Services\AimClipList\AimClipListUserMeta();
     }
 
     private function addHooks() {
@@ -93,6 +96,15 @@ class Plugin {
             'rest_api_init',
             [
                 new \Jk\Vts\Endpoint\ACLEditor(),
+                'register'
+            ]
+        );
+
+        // AIM CLIP LIST User Endpoints
+        add_action(
+            'rest_api_init',
+            [
+                new \Jk\Vts\Endpoint\UserClipListActions(),
                 'register'
             ]
         );

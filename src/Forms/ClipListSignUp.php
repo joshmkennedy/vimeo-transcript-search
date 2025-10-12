@@ -39,7 +39,6 @@ class ClipListSignUp {
 
 
         $values = Collection::make($field_data)->map(fn($field) => $field['value'])->reject(fn($value) => !is_numeric($value) || $value > 5);
-        $this->log()->info("values: " . print_r($values->implode(value:fn($v)=>$v,glue: ', '), true));
         $score = $values->sum();
 
         if($score>20){
@@ -71,6 +70,7 @@ class ClipListSignUp {
         $this->email->scheduleRegistrationEmail($listId, $user->ID);
 
         $clipListRegistrationId = $entry->entry_id;
+        Flash::message(sprintf("starting-plan-%d",(int)$clipListRegistrationId), "You've been registered for an Aim Starting Plan");
     }
 
     private function getListIdFromCategory(string $category, int $id) {

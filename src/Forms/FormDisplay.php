@@ -19,7 +19,6 @@ class FormDisplay {
     }
     return is_array($value) && isset($value['subscribed_on']) && $value['finished_on'] === null;
 })->keys();
-       error_log(print_r($lists->toArray(), true));
        return $lists->count() > 0;
     }
 }

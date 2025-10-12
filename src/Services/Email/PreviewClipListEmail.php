@@ -59,7 +59,7 @@ class PreviewClipListEmail {
             'main_video' => $mainVideo,
             'side_videos' => $sideVideos,
             'links' => $links,
-            'opt_out_user_link' => ClipListEmail::createOptoutLink($emailAddress, $config['clipListId']),
+            'opt_out_user_link' => ClipListEmail::createOptoutLink(),
         ];
     }
 }

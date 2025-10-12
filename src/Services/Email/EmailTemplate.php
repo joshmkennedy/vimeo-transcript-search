@@ -264,7 +264,7 @@ class EmailTemplate {
         <tr>
             <td align="center" style="padding-top:20px;">
                 <img src="<?= $imageUrl; ?>" alt="<?= $imageAlt; ?>" style="max-width:100%;" />
-                <h1><?= $title; ?></h1>
+                <h1 style="line-height:1.25"><?= $title; ?></h1>
             </td>
         </tr>
     <?php
@@ -357,9 +357,9 @@ class EmailTemplate {
         </tr>
         <tr>
             <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
-                <p>You are receiving this email because you have opted in to receive emails from Ai Marketing Academy on a currated learning path.</p>
+                <p>You are receiving this email because you have opted in to receive emails from Ai Marketing Academy on a currated starting plan.</p>
                 <?php if ($stoplink): ?>
-                    <p style="margin:0 0 10px; font-size:13px;"><a href="<?= $stoplink; ?>" style="color:#333333;">Stop getting this learning path through email.</a></p>
+                    <p style="margin:0 0 10px; font-size:13px;"><a href="<?= $stoplink; ?>" style="color:#333333;">manage my plan</a></p>
                 <?php endif; ?>
 
             </td>

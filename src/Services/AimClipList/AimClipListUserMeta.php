@@ -8,7 +8,10 @@ class AimClipListUserMeta {
     public string $received_emails = "received_emails";
     public string $next_email = "next_email";
 
+    private ClipListMeta $clipListMeta;
+
     public function __construct() {
+        $this->clipListMeta = new ClipListMeta();
     }
 
     public function getSubscribedLists($userId) {
@@ -25,6 +28,7 @@ class AimClipListUserMeta {
         }
         return $meta;
     }
+
     public function getSubscriptionStatus(int $userId, int $list) {
         $lists = $this->getSubscribedLists($userId);
         if (!isset($lists[$list])) {
@@ -42,6 +46,28 @@ class AimClipListUserMeta {
         }
     }
 
+    public function getActiveSubscriptions(int $userId){
+        $lists = $this->getSubscribedLists($userId);
+        $activeSubscriptions = [];
+        foreach ($lists as $listId => $meta){
+            if($this->getSubscriptionStatus($userId, $listId) === 'active'){
+                $activeSubscriptions[] = ['listId'=>$listId, 'meta'=>$meta];
+            }
+        }
+        return $activeSubscriptions;
+    }
+
+    public function getLastActiveSubscription(int $userId){
+        $lists = $this->getActiveSubscriptions($userId);
+        if(count($lists) > 0){
+            usort($lists, function($a, $b){
+                return $b['subscribed_on'] - $a['subscribed_on'];
+            });
+            return $lists[0];
+        }
+        return null;
+    }
+
     public function getSubscriptionDate(int $userId, int $list) {
         $lists = $this->getSubscribedLists($userId);
         if (!isset($lists[$list])) {
@@ -54,7 +80,7 @@ class AimClipListUserMeta {
                 $emails = $this->getReceivedEmailsForList($userId, $list);
                 if (!empty($emails)) {
                     $earliest = min(array_map('strtotime', array_values($emails)));
-                    return $earliest;
+                    return $earliest['sendDate'];
                 }
                 return time();
             }
@@ -87,8 +113,22 @@ class AimClipListUserMeta {
     public function removeSubscribedList(int $userId, int $list) {
         $lists = $this->getSubscribedLists($userId);
         if (isset($lists[$list])) {
-            $isActive = is_bool($lists[$list]) ? $lists[$list] : (isset($lists[$list]['finished_on']) && $lists[$list]['finished_on'] === null);
+            $isActive = is_bool($lists[$list]) ? $lists[$list] : (array_key_exists('finished_on', $lists[$list]) && $lists[$list]['finished_on'] == null);
+            error_log(
+                print_r(
+                    [
+                        'finished_on'=>$lists[$list]["finished_on"],
+                        'equals_null'=> $lists[$list]["finished_on"] == null,
+                        'type'=> gettype($lists[$list]["finished_on"]),
+                        'isActive'=>$isActive,
+                        'is_bool'=>is_bool($lists[$list]),
+                        'isset'=>array_key_exists('finished_on', $lists[$list]),
+                    ],
+                    true
+                )
+            );
             if ($isActive) {
+                error_log("removing subscribed list $list, bc we activeeeeeeeeeeeeeeeeeee..................!\n........!");
                 if (is_bool($lists[$list]) && $lists[$list] === true) {
                     $lists[$list] = ['subscribed_on' => time(), 'finished_on' => time()];
                 } else {
@@ -137,7 +177,14 @@ class AimClipListUserMeta {
         foreach ($emails as $emailFullName => $date) {
             if (strpos($emailFullName, $listId . ':') === 0) {
                 $email = substr($emailFullName, strlen($listId . ':'));
-                $emailsForList[$email] = $date;
+                $weekIdx = $this->clipListMeta->getWeekIdx($email);
+                $link = get_site_url() . "/aim-learning-path/{$listId}/$weekIdx";
+
+                $emailsForList[$email] = [
+                    'sentDate'=>$date,
+                    'label'=> $email,
+                    'link' => $link
+                ];
             }
         }
         return $emailsForList;
@@ -159,9 +206,10 @@ class AimClipListUserMeta {
         $emails = $this->getReceivedEmailsForList($userId, $listId);
         if (count($emails) > 0) {
             usort($emails, function ($a, $b) {
-                return strtotime($b) - strtotime($a);
+                return strtotime($b['sendDate']) - strtotime($a['sendDate']);
             });
-            return [array_keys($emails)[0], array_values($emails)[0]];
+            $last = array_values($emails)[0];
+            return [$last['label'], $last['sentDate']];
         }
         return null;
     }

@@ -1,0 +1,58 @@
+#vts-flash-messages {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  gap: .5rem;
+  flex-direction: column;
+  max-width: 250px;
+  padding-bottom: 1rem;
+}
+
+.vts-flash-message {
+  background-color: var(--vts-flash-message-background-color, var(--brand-c-dark, black));
+  color: var(--vts-flash-message-color, var(--slate-100, white));
+  border-radius: 10px;
+  border: 2px solid var(--vts-flash-message-border-color, var(--brand-c-primary, white));
+  padding: .5rem 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+  position: relative;
+  overflow: hidden;
+  p {
+    position: relative;
+    z-index: 3;
+  }
+}
+
+.vts-flash-message .dismiss {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: .5rem;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+
+  svg {
+    pointer-events: none;
+    width: 1em;
+    fill: currentColor;
+  }
+
+  &:hover {
+    background: #ffffff77;
+  }
+}
+
+.vts-flash-message-leave {
+  animation: vts-flash-message-leave .18s ease-in-out;
+}
+
+@keyframes vts-flash-message-leave {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
