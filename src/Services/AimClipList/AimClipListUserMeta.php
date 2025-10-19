@@ -2,11 +2,15 @@
 
 namespace Jk\Vts\Services\AimClipList;
 
+use Jk\Vts\Services\Logging\LoggerTrait;
+
 class AimClipListUserMeta {
     const PREFIX = 'aim_clip_list_';
     public string $subscribed_lists = "subscribed_lists";
     public string $received_emails = "received_emails";
     public string $next_email = "next_email";
+
+    use LoggerTrait;
 
     private ClipListMeta $clipListMeta;
 
@@ -80,7 +84,7 @@ class AimClipListUserMeta {
                 $emails = $this->getReceivedEmailsForList($userId, $list);
                 if (!empty($emails)) {
                     $earliest = min(array_map('strtotime', array_values($emails)));
-                    return $earliest['sendDate'];
+                    return $earliest['sentDate'];
                 }
                 return time();
             }
@@ -206,7 +210,7 @@ class AimClipListUserMeta {
         $emails = $this->getReceivedEmailsForList($userId, $listId);
         if (count($emails) > 0) {
             usort($emails, function ($a, $b) {
-                return strtotime($b['sendDate']) - strtotime($a['sendDate']);
+                return strtotime($b['sentDate']) - strtotime($a['sentDate']);
             });
             $last = array_values($emails)[0];
             return [$last['label'], $last['sentDate']];
