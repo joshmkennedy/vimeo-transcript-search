@@ -57,6 +57,24 @@
 #aim-clip-player-app .video-selector-title {
   font-size: 1.2rem;
 }
+
+#aim-clip-player-app .video-selector-video-type-section {
+  margin-block: 1rem;
+  .video-section__header {
+    margin-block-end:.5rem;
+    h4 {
+      font-size: 1rem;
+    }
+    p {
+      font-size: .8rem;
+      color: var(--slate-700);
+      margin-block: 0;
+    }
+  }
+}
+
+/* Cards */
+
 #aim-clip-player-app .aim-video-selection-item {
   position: relative;
   padding: .25rem .25rem .5rem;

@@ -5,6 +5,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { AimVideoSelection } from './video-selector';
 import type { PlayerApi } from '../aim-clip-player';
 import { ResourceList } from './resources';
+import type { VideoType } from '@/configuration/video-types';
 
 export type Video = {
   vimeoId: string;
@@ -14,6 +15,7 @@ export type Video = {
   summary: string;
   name: string;
   image_url: string;
+	video_type: VideoType;
 };
 
 export type Resource = {
