@@ -8,12 +8,14 @@ export const VideoTypeLabelMapper = {
 
 const sectionConfig = {
   "featured": {
-    label: "Featured",
+    label: "Featured Lesson",
+    singleLabel: "Featured Lesson",
     key: "featured",
     description: "Core concepts and initial set up to get you started",
   },
   "supporting": {
-    label: "Supporting",
+    label: "Supporting Lessons",
+    singleLabel: "Supporting Lesson",
     key: "supporting",
     description: "Go further with the these concepts and how to use them",
   },

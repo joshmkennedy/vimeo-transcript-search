@@ -5,18 +5,10 @@ import toast, { Toaster } from 'react-hot-toast';
 import { AimVideoSelection } from './video-selector';
 import type { PlayerApi } from '../aim-clip-player';
 import { ResourceList } from './resources';
-import type { VideoType } from '@/configuration/video-types';
+import type { Video } from '../types';
+import { AboveVideoPlayer } from './above-the-player';
+import { VideoTypeBadge } from './video-type-badge';
 
-export type Video = {
-  vimeoId: string;
-  start: number;
-  end: number;
-  clipId: string;
-  summary: string;
-  name: string;
-  image_url: string;
-	video_type: VideoType;
-};
 
 export type Resource = {
   label: string;
@@ -71,6 +63,9 @@ function App({ playerApi, videos, resources, selectedVideo: defaultSelectedVideo
   }, [])
   return (
     <div>
+			<AboveVideoPlayer>
+				{selectedVideo && <VideoTypeBadge videoType={selectedVideo.video_type} />}
+			</AboveVideoPlayer>
       {selectedVideo && <p>{selectedVideo.summary}</p>}
       <div className="">
         {selectedVideo && <AimVideoSelection selectedVideo={selectedVideo} setSelectedVideo={setVideo} videos={videos} />}

@@ -1,10 +1,21 @@
 import { buildCategoryConfig } from "@/configuration/video-types";
-import type { Video } from "./app";
+import type { Video } from "../types";
 import { formatTime } from "@/lib/format-time";
+import { getAbovePlayerDomElement } from "./above-the-player";
+
+function slideUpToVideo(){
+	const el = getAbovePlayerDomElement();
+	el.scrollIntoView({ behavior: "smooth", block: "start"});
+}
 
 export function AimVideoSelection({ selectedVideo, setSelectedVideo, videos }: { selectedVideo: Video, setSelectedVideo: (id: string) => void, videos: Video[] }) {
 
   const config = buildCategoryConfig<Video>(videos);
+
+	function onSelectVideo(clipId: string){
+		setSelectedVideo(clipId);
+		slideUpToVideo();
+	}
 
   return <div className="aim-video-selection section">
     <header className="section-header">
@@ -24,7 +35,7 @@ export function AimVideoSelection({ selectedVideo, setSelectedVideo, videos }: {
                 className={"aim-video-selection-item hoverable " + (video.clipId === selectedVideo.clipId ? "aim-video-selection-item-selected" : "")}
 
                 key={video.clipId}
-                onClick={() => setSelectedVideo(video.clipId)}
+                onClick={() => onSelectVideo(video.clipId)}
               >
                 {selectedVideo.clipId === video.clipId ?
                   <div className="aim-video-selection-item-selected-indicator">

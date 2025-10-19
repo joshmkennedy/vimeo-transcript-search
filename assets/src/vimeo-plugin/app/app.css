@@ -1,8 +1,7 @@
-
 .wp-block-embed:has(#aim-clip-player-app) {
-  iframe{
-  aspect-ratio: 16/9;
-  background-color:black;
+  iframe {
+    aspect-ratio: 16/9;
+    background-color: black;
   }
 }
 
@@ -36,10 +35,19 @@
 #aim-clip-player-app .section-header {
   display: flex;
   flex-direction: column;
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     margin-block: 0;
   }
-  p {margin-block: 0;}
+
+  p {
+    margin-block: 0;
+  }
 }
 
 #aim-clip-player-app .section {
@@ -60,11 +68,14 @@
 
 #aim-clip-player-app .video-selector-video-type-section {
   margin-block: 1rem;
+
   .video-section__header {
-    margin-block-end:.5rem;
+    margin-block-end: .5rem;
+
     h4 {
       font-size: 1rem;
     }
+
     p {
       font-size: .8rem;
       color: var(--slate-700);
@@ -84,17 +95,17 @@
   gap: .5rem;
   border: 2px solid transparent;
 
-  & > :where(div:not(.aim-video-selection-item-image)) {
+  &> :where(div:not(.aim-video-selection-item-image)) {
     padding-inline: .25rem;
   }
 
-  .aim-video-selection-item-selected-indicator{
+  .aim-video-selection-item-selected-indicator {
     position: absolute;
     top: .5rem;
     right: .5rem;
     background-color: color-mix(in srgb, var(--brand-c-primary) 80%, transparent);
     color: var(--brand-c-light);
-    padding:0rem .5rem; 
+    padding: 0rem .5rem;
     display: flex;
     font-size: .8rem;
     border-radius: 2px;
@@ -154,4 +165,15 @@
     padding: .5rem;
     text-decoration: none;
   }
+}
+
+.aim-clip-player--above-the-player {
+  scroll-margin:10rem;
+}
+.aim-vimeo-plugin--video-type-badge {
+  background-color: var(--video-type-badge-color, var(--brand-c-primary)); 
+  color: var(--video-type-badge-text-color, var(--brand-c-light));
+  border-radius: .2em .2em 0 0;
+  padding: 0rem .5rem;
+  font-size: 1rem;
 }
