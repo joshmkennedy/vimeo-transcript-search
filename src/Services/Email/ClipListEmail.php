@@ -59,7 +59,8 @@ class ClipListEmail {
         return $content;
     }
 
-    public function getWeekConfig($weekIndex) {
+    public function getWeekConfig($weekIndex):array {
+        $emailIntro = $this->meta->getEmailInfo($this->clipListId, 'week_' . $weekIndex . '_videos_for_this_week')['textContent'];
         $items = $this->meta->getItems($this->clipListId);
         $resources = $this->meta->getResources($this->clipListId);
 
@@ -82,6 +83,7 @@ class ClipListEmail {
 
         return [
             'title' => $emailTitle,
+            'emailIntro' => $emailIntro,
             'main_video' => $mainVideo ? $mainVideo : [],
             'side_videos' => $sideVideos ? $sideVideos : [],
             'links' => $links,

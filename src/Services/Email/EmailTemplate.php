@@ -13,9 +13,9 @@ class EmailTemplate {
         <center>
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
-                    <td align="center" style="padding-top:0px; padding-left: 10px; padding-right: 10px;">
+                    <td align="center" style="padding-top:0px; padding-left: 20px; padding-right: 20px;">
                         <!-- Outer container -->
-                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff; margin-bottom:20px; padding-bottom:20px;">
+                        <table class="container outer-container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff; margin-bottom:20px; padding-bottom:20px;">
 
                             <?php $this->headerMarkup(
                                 title: $config['title'],
@@ -43,13 +43,12 @@ class EmailTemplate {
         ob_start(); ?>
 
         <?php $this->docStart($config['title']); ?>
-
         <center>
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="">
                 <tr>
-                    <td align="center" style="padding-top:0px; padding-left: 10px; padding-right: 10px;">
+                    <td align="center" style="padding-top:0px; padding-left: 20px; padding-right: 20px;">
                         <!-- Outer container -->
-                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#ffffff; margin-bottom:20px;">
+                        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:750px; background:#F9F9F9; margin-bottom:20px;">
 
                             <?php $this->headerMarkup(
                                 title: $config['title'],
@@ -80,7 +79,17 @@ class EmailTemplate {
         <head>
             <meta charset="utf-8">
             <title><?= $title; ?></title>
+            <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700,700i" rel="stylesheet">
             <style>
+                * {
+                    box-sizing: border-box;
+                    max-width: 100%;
+                }
+
+                table {
+                    border-collapse: collapse;
+                }
+
                 /* Mobile responsive fallback */
                 @media only screen and (max-width: 600px) {
                     .container {
@@ -93,23 +102,37 @@ class EmailTemplate {
                         display: block;
                     }
 
+                    .two-col.img-col {
+                        padding-right: 20px !important;
+                        padding-bottom: 20px;
+                    }
+
+                    .two-col.content-col {
+                        padding-top: 0;
+                    }
+
                     .secondary-video-card {
-                        display: block;
-                        width: 100%;
+                        display: block !important;
+                        width: 100% !important;
                     }
 
                     .two-col {
-                        width: 100%;
+                        display: block !important;
+                        width: 100% !important;
                     }
 
                     .desktop-only {
                         display: none;
                     }
+
+                    .outer-container {
+                        width: 100% !important;
+                    }
                 }
             </style>
         </head>
 
-        <body style="margin:0; padding:0; background-color:#f5f5f5; font-family:Arial, sans-serif; font-size:16px; line-height:24px; color:#333333;">
+        <body style="margin:0; padding:0; background-color:#EFEFEF; font-family:Roboto, Helvetica-Neue, Helvetica, Arial, sans-serif; font-size:16px; line-height:24px; color:#333333;">
         <?php
     }
 
@@ -133,8 +156,8 @@ class EmailTemplate {
 
     public function linkListMarkup($headertext, $items) {
     ?>
-        <tr style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
-            <td style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+        <tr style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
+            <td style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
                 <h3 style="margin:0 0 10px;"><?= $headertext; ?></h3>
             </td>
         </tr>
@@ -154,7 +177,7 @@ class EmailTemplate {
     ?>
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:20px auto; <?= $style; ?>">
             <tr>
-                <td align="center" bgcolor="#31dba5" style="border-radius:4px;">
+                <td align="center" bgcolor="#31dba5" style="border-radius:999px; background: linear-gradient(33deg, #31DBA5, #1C4C8A);">
                     <a href=" <?= $link; ?>"
                         target="_blank"
                         style="display:inline-block; 
@@ -176,6 +199,7 @@ class EmailTemplate {
 
     public function imageCardMarkup($link, $title, $imageUrl, $text, $width, $imageStyles, $description) {
         ob_start(); ?>
+        <p style="font-weight:bold; font-size:16px;">Featured Lesson</p>
         <a href="<?= $link; ?>">
             <img src="<?= $imageUrl; ?>" alt="<?= $title; ?>" width="<?= $width; ?>" style="<?= $imageStyles; ?>">
         </a>
@@ -197,7 +221,7 @@ class EmailTemplate {
     ?>
         <!-- Full width image -->
         <tr>
-            <td style="padding-top:10px; padding-left: 10px; padding-right: 10px;">
+            <td style="padding-top:10px; padding-left: 20px; padding-right: 20px; font-size:14px;">
                 <?= $children(); ?>
             </td>
         </tr>
@@ -210,14 +234,16 @@ class EmailTemplate {
         <tr>
             <td>
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                    <tr>
-                        <td class="two-col" width="50%" align="center" style="font-size:14px">
-                            <?= $left(); ?>
-                        </td>
-                        <td class="two-col" width="50%" align="center" style="font-size:14px">
-                            <?= $right(); ?>
-                        </td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td class="two-col" width="50%" align="text-top" style="font-size:14px">
+                                <?= $left(); ?>
+                            </td>
+                            <td class="two-col" width="50%" align="text-top" style="font-size:14px">
+                                <?= $right(); ?>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </td>
         </tr>
@@ -229,29 +255,31 @@ class EmailTemplate {
         ob_start(); ?>
         <tr>
             <td>
-                <table role="presentation" cellspacing="0" cellpadding="10px" border="0" width="100%">
-                    <tr class="secondary-video-card">
-                        <td class="two-col img-col" width="25%" align="center" style="font-size:14px">
-                            <a href="<?= $link; ?>">
-                                <img src="<?= $imageUrl; ?>" alt="<?= $title; ?>" width="<?= $width; ?>" style="<?= $imageStyles; ?>">
-                            </a>
-                        </td>
-                        <!-- <td class="desktop-only" width="5%" align="center" style="font-size:14px"></td> -->
-                        <td class="two-col" width="65%" align="center" style="font-size:14px">
+                <table role="presentation" cellspacing="0" cellpadding="20px" border="0" width="100%">
+                    <tbody style="vertical-align:top">
+                        <tr class="secondary-video-card">
+                            <td class="two-col img-col" width="33%" align="" style="font-size:14px; padding-right:0">
+                                <a href="<?= $link; ?>">
+                                    <img src="<?= $imageUrl; ?>" alt="<?= $title; ?>" width="<?= $width; ?>" style="<?= $imageStyles; ?>">
+                                </a>
+                            </td>
+                            <!-- <td class="desktop-only" width="5%" align="center" style="font-size:14px"></td> -->
+                            <td class="two-col content-col" width="55%" align="" style="font-size:14px">
 
-                            <?php if ($description && $description !== ""): ?>
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <p><?= $this->replaceNLWithBR($description); ?></p>
-                                        </td>
-                                    </tr>
-                                </table>
-                            <?php endif; ?>
+                                <?php if ($description && $description !== ""): ?>
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <p style="margin-top:0;"><?= $this->replaceNLWithBR($description); ?></p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                <?php endif; ?>
 
-                            <?php $this->buttonMarkup($link, $text, "margin-left:0;"); ?>
-                        </td>
-                    </tr>
+                                <?php $this->buttonMarkup($link, $text, "margin-left:0;"); ?>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </td>
         </tr>
@@ -262,7 +290,7 @@ class EmailTemplate {
     function headerMarkup($title, $imageUrl, $imageStyles, $imageAlt) {
     ?>
         <tr>
-            <td align="center" style="padding-top:20px;">
+            <td align="center" style="padding-top:0px;">
                 <img src="<?= $imageUrl; ?>" alt="<?= $imageAlt; ?>" style="max-width:100%;" />
                 <h1 style="line-height:1.25"><?= $title; ?></h1>
             </td>
@@ -274,7 +302,7 @@ class EmailTemplate {
         ob_start(); ?>
         <tr>
             <?php if (isset($config['emailIntro']) && $config['emailIntro']): ?>
-                <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+                <td align="left" style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
                     <p><?= $this->replaceNLWithBR($config['emailIntro']); ?></p>
                 </td>
             <?php endif; ?>
@@ -297,6 +325,11 @@ class EmailTemplate {
             );
         } ?>
         <!-- image left content right list -->
+        <tr>
+            <td align="left" style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
+                <p style="font-weight:bold; margin-bottom:0; font-size:16px;">Supporting Lesson<?= count($config['side_videos']) > 1 ? 's' : ''; ?></p>
+            </td>
+        </tr>
         <?php
         if (count($config['side_videos']) > 0) {
             foreach ($config['side_videos'] as $sideVideo): ?>
@@ -325,7 +358,7 @@ class EmailTemplate {
     public function textBasedContentMarkup($config) {
         ob_start(); ?>
         <tr>
-            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+            <td align="left" style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
                 <?= $config['textContent']; ?>
             </td>
         </tr>
@@ -345,18 +378,18 @@ class EmailTemplate {
     public function footerMarkup($stoplink) {
     ?>
         <tr>
-            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+            <td align="left" style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
                 <p>These videos are short clips pulled from our full lectures and labs. They’re designed to quickly introduce you to the key ideas and give you a sense of the topics we cover inside AI Marketing Academy.</p>
                 <p>If a clip sparks your interest—or you feel like you need more context—feel free to dive into the full-length version to explore the subject in greater depth.</p>
             </td>
         </tr>
         <tr>
-            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+            <td align="left" style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
                 <hr />
             </td>
         </tr>
         <tr>
-            <td align="left" style="padding-top:20px; padding-left: 10px; padding-right: 10px;">
+            <td align="left" style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
                 <p>You are receiving this email because you have opted in to receive emails from Ai Marketing Academy on a currated starting plan.</p>
                 <?php if ($stoplink): ?>
                     <p style="margin:0 0 10px; font-size:13px;"><a href="<?= $stoplink; ?>" style="color:#333333;">manage my plan</a></p>
