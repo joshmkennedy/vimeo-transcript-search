@@ -16,8 +16,7 @@ class AimClipListEmailManager {
     private AimClipListUserMeta $userMeta;
     private EmailServiceInterface $emailService;
     private array $cache;
-    public function __construct(
-    ) {
+    public function __construct() {
         $this->scheduledJobs = new ScheduledJobs();
         $this->meta = new ClipListMeta();
         $this->cache = [];
@@ -42,8 +41,10 @@ class AimClipListEmailManager {
                 foreach ($users as $userId => $user) {
                     $this->log()->info("user is being queued email", $user);
                     $args = $this->maybeBuildEmailConfig($listId, $emailName, $userId, $user);
-                    // The email may not be due to be sent. 
-                    $this->scheduledJobs->scheduleOnce(time(), self::SEND_QUEUED_EMAILS_ACTION, $args);
+                    if ($args) {
+                        // The email may not be due to be sent. 
+                        $this->scheduledJobs->scheduleOnce(time(), self::SEND_QUEUED_EMAILS_ACTION, $args);
+                    }
                 }
             }
         }
@@ -100,7 +101,7 @@ class AimClipListEmailManager {
         return $args;
     }
 
-    public function sendEmail(int $listId, string $emailName, $emailAddress, $user){
+    public function sendEmail(int $listId, string $emailName, $emailAddress, $user) {
         $userId = $user['ID'];
         $weekIndex = $this->meta->getWeekIdx($emailName);
         $clipLisEmail = new ClipListEmail($listId, $weekIndex);
