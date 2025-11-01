@@ -16,6 +16,10 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+\Sentry\init([
+  'dsn' => 'https://7d5ba03eb477f2dc37c4e00ae13a6a6f@o4510275695804416.ingest.us.sentry.io/4510290964971520',
+]);
+
 use Jk\Vts\Plugin;
 
 $plugin = new Plugin(

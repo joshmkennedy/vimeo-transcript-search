@@ -12,9 +12,15 @@ class ComposerStaticInit6adadc5a8938b4af25e70e10e4e77d81
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '23f09fe3194f8c2f70923f90d6702129' => __DIR__ . '/..' . '/illuminate/collections/functions.php',
         '60799491728b879e74601d83e38b2cad' => __DIR__ . '/..' . '/illuminate/collections/helpers.php',
+        'fb4ca2d97fe7ba6af750497425204e70' => __DIR__ . '/..' . '/sentry/sentry/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
+        'S' => 
+        array (
+            'Symfony\\Component\\OptionsResolver\\' => 34,
+            'Sentry\\' => 7,
+        ),
         'P' => 
         array (
             'Psr\\SimpleCache\\' => 16,
@@ -35,6 +41,7 @@ class ComposerStaticInit6adadc5a8938b4af25e70e10e4e77d81
         'J' => 
         array (
             'Jk\\Vts\\' => 7,
+            'Jean85\\' => 7,
         ),
         'I' => 
         array (
@@ -50,6 +57,14 @@ class ComposerStaticInit6adadc5a8938b4af25e70e10e4e77d81
     );
 
     public static $prefixDirsPsr4 = array (
+        'Symfony\\Component\\OptionsResolver\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/options-resolver',
+        ),
+        'Sentry\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sentry/sentry/src',
+        ),
         'Psr\\SimpleCache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/simple-cache/src',
@@ -86,6 +101,10 @@ class ComposerStaticInit6adadc5a8938b4af25e70e10e4e77d81
         'Jk\\Vts\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Jean85\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/jean85/pretty-package-versions/src',
         ),
         'Illuminate\\Support\\' => 
         array (
