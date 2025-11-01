@@ -29,24 +29,28 @@ class AimClipListEmailManager {
     }
 
     public function queueEmails() {
-        // get all users who have subscribed to a list
-        $users = $this->getSubscribedUsers();
+        try {
+            // get all users who have subscribed to a list
+            $users = $this->getSubscribedUsers();
 
-        $config = $this->buildCampaignConfig($users);
+            $config = $this->buildCampaignConfig($users);
 
-        // loop through each list id and weekid and cache the email that needs to be sent.
-        foreach ($config as $listId => $emails) {
-            foreach ($emails as $emailName => $users) {
-                // @see the getSubscribedUsers method for what the user object looks like
-                foreach ($users as $userId => $user) {
-                    $this->log()->info("user is being queued email", $user);
-                    $args = $this->maybeBuildEmailConfig($listId, $emailName, $userId, $user);
-                    if ($args) {
-                        // The email may not be due to be sent. 
-                        $this->scheduledJobs->scheduleOnce(time(), self::SEND_QUEUED_EMAILS_ACTION, $args);
+            // loop through each list id and weekid and cache the email that needs to be sent.
+            foreach ($config as $listId => $emails) {
+                foreach ($emails as $emailName => $users) {
+                    // @see the getSubscribedUsers method for what the user object looks like
+                    foreach ($users as $userId => $user) {
+                        $this->log()->info("user is being queued email", $user);
+                        $args = $this->maybeBuildEmailConfig($listId, $emailName, $userId, $user);
+                        if ($args) {
+                            // The email may not be due to be sent. 
+                            $this->scheduledJobs->scheduleOnce(time(), self::SEND_QUEUED_EMAILS_ACTION, $args);
+                        }
                     }
                 }
             }
+        } catch (\Throwable $e) {
+            \Sentry\captureException($e);
         }
     }
 
@@ -102,29 +106,33 @@ class AimClipListEmailManager {
     }
 
     public function sendEmail(int $listId, string $emailName, $emailAddress, $user) {
-        $userId = $user['ID'];
-        $weekIndex = $this->meta->getWeekIdx($emailName);
-        $clipLisEmail = new ClipListEmail($listId, $weekIndex);
-        $emailConfig = $clipLisEmail->generateClipListEmail($emailAddress);
-        // send the email
-        $this->emailService->send(
-            $emailConfig['emailAddress'],
-            $emailConfig['subject'],
-            $emailConfig['content'],
-            $emailConfig['headers']
-        );
-        // update user recieved email
-        $this->userMeta->addReceivedEmail($userId, $listId, $emailName);
-        $nextEmail = $this->meta->getNextEmail($listId, $emailName);
-        if ($nextEmail !== null && $nextEmail !== 'last') {
-            $this->userMeta->setNextEmailForList($userId, $listId, $nextEmail);
-        }
-        // This means we have reached the last email for this list.
-        if ($nextEmail === 'last') {
-            // shoould be renamed as removeSubscribedList is confusing
-            // we are setting it to false not really removing it.
-            $this->userMeta->removeSubscribedList($userId, $listId);
-            $this->userMeta->deleteNextEmailForList($userId, $listId);
+        try {
+            $userId = $user['ID'];
+            $weekIndex = $this->meta->getWeekIdx($emailName);
+            $clipLisEmail = new ClipListEmail($listId, $weekIndex);
+            $emailConfig = $clipLisEmail->generateClipListEmail($emailAddress);
+            // send the email
+            $this->emailService->send(
+                $emailConfig['emailAddress'],
+                $emailConfig['subject'],
+                $emailConfig['content'],
+                $emailConfig['headers']
+            );
+            // update user recieved email
+            $this->userMeta->addReceivedEmail($userId, $listId, $emailName);
+            $nextEmail = $this->meta->getNextEmail($listId, $emailName);
+            if ($nextEmail !== null && $nextEmail !== 'last') {
+                $this->userMeta->setNextEmailForList($userId, $listId, $nextEmail);
+            }
+            // This means we have reached the last email for this list.
+            if ($nextEmail === 'last') {
+                // shoould be renamed as removeSubscribedList is confusing
+                // we are setting it to false not really removing it.
+                $this->userMeta->removeSubscribedList($userId, $listId);
+                $this->userMeta->deleteNextEmailForList($userId, $listId);
+            }
+        } catch (\Throwable $e) {
+            \Sentry\captureException($e);
         }
     }
 

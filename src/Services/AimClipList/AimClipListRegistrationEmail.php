@@ -42,15 +42,19 @@ class AimClipListRegistrationEmail {
      * @param string $content    The email content.
      **/
     public function sendEmail(int $listId, int $userId, string $content) {
-        $user = get_user_by('id', $userId);
-        $usersLists = $this->userMeta->getSubscribedLists($userId);
-        if (! array_key_exists($listId, $usersLists)) {
-            return;
+        try {
+            $user = get_user_by('id', $userId);
+            $usersLists = $this->userMeta->getSubscribedLists($userId);
+            if (! array_key_exists($listId, $usersLists)) {
+                return;
+            }
+            $emailAddress = $user->user_email;
+            $this->email->sendEmail($emailAddress, "You have successfully registered for an AiM Starting Point.", $content);
+            $nextEmail = "week_1_videos_for_this_week";
+            $this->userMeta->setNextEmailForList($userId, $listId, $nextEmail);
+        } catch (\Throwable $e) {
+            \Sentry\captureException($e);
         }
-        $emailAddress = $user->user_email;
-        $this->email->sendEmail($emailAddress, "You have successfully registered for an AiM Starting Point.", $content);
-        $nextEmail = "week_1_videos_for_this_week";
-        $this->userMeta->setNextEmailForList($userId, $listId, $nextEmail);
     }
 
     public function getDefaultEmailContent() {

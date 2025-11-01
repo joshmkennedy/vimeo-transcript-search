@@ -132,7 +132,6 @@ class AimClipListUserMeta {
                 )
             );
             if ($isActive) {
-                error_log("removing subscribed list $list, bc we activeeeeeeeeeeeeeeeeeee..................!\n........!");
                 if (is_bool($lists[$list]) && $lists[$list] === true) {
                     $lists[$list] = ['subscribed_on' => time(), 'finished_on' => time()];
                 } else {
