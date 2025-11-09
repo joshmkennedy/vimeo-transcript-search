@@ -70,7 +70,7 @@ class ClipListSignUp {
         $this->email->scheduleRegistrationEmail($listId, $user->ID);
 
         $clipListRegistrationId = $entry->entry_id;
-        Flash::message(sprintf("starting-plan-%d",(int)$clipListRegistrationId), "You've been registered for an Aim Starting Plan");
+        Flash::message(sprintf("starting-plan-%d",(int)$clipListRegistrationId), "You've been registered for an Aim Fast Track");
     }
 
     private function getListIdFromCategory(string $category, int $id) {

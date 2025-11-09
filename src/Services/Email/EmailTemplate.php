@@ -390,7 +390,7 @@ class EmailTemplate {
         </tr>
         <tr>
             <td align="left" style="padding-top:20px; padding-left: 20px; padding-right: 20px;">
-                <p>You are receiving this email because you have opted in to receive emails from Ai Marketing Academy on a currated starting plan.</p>
+                <p>You are receiving this email because you have opted in to receive emails from Ai Marketing Academy on a currated Fast Track.</p>
                 <?php if ($stoplink): ?>
                     <p style="margin:0 0 10px; font-size:13px;"><a href="<?= $stoplink; ?>" style="color:#333333;">manage my plan</a></p>
                 <?php endif; ?>
