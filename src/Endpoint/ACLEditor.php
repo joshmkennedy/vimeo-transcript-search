@@ -63,6 +63,9 @@ class ACLEditor {
         if (is_wp_error($items)) {
             return rest_ensure_response($items);
         }
+        $oldItems = $this->meta->getItems($postId) ?? [];
+        $items = array_merge($oldItems, $items);
+
         $resources = $this->meta->getResources($postId);
         if (!$resources || !is_array($resources)) {
             $resources = [];
@@ -218,7 +221,7 @@ class ACLEditor {
                 ],
                 'items' => $this->meta->getItems($postId),
                 'resources' => $this->meta->getResources($postId) ?? [],
-                'weeksInfo' => $this->meta->getWeeksInfo($postId) ?? [],
+                'weeksInfo' => $this->meta->getWeeksForEditor($postId) ?? [],
                 'formId' => $this->meta->getFormId($postId),
                 'category' => $category->term_id,
 

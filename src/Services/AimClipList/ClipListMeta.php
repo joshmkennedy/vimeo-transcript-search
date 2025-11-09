@@ -72,15 +72,11 @@ class ClipListMeta {
         $weeks = $this->getWeeksInfo($postId);
         $weeksForEditor = [];
         foreach ($weeks as $week) {
-            $weeksForEditor[$this->getWeekIdx($week['week_index'])] = $week;
+            $weeksForEditor[$week['week_index']] = $week;
         }
         return $weeksForEditor;
     }
 
-    /**
-     * Make sure thate the shape is correct and build the linked list of emails
-     *   //[int=>weekinfo]
-     **/
     public function normalizeWeeksFromEditor($weeksFromEditor): array {
         $weeks = [];
         foreach ($weeksFromEditor as $weekidx => $weekInfo) {
@@ -125,10 +121,11 @@ class ClipListMeta {
                     throw new \Exception("email sendTime is corrupt, {$email['sendTime']}");
                 }
 
+                $weekIndexNum = str_replace('week_', '', $weekidx);
                 if ($idx < count($weekInfo['emails']) - 1) {
                     $nextEmail = $weekInfo['emails'][$idx + 1]['email'];
-                } elseif ($weekidx < count($weeksFromEditor) && isset($weeksFromEditor[$weekidx + 1])) {
-                    $nextWeek = $weeksFromEditor[$weekidx + 1];
+                } elseif ($weekIndexNum < count($weeksFromEditor) && isset($weeksFromEditor['week_' . $weekIndexNum + 1])) {
+                    $nextWeek = $weeksFromEditor['week_' . $weekIndexNum + 1];
                     $nextEmail = $nextWeek['emails'][0]['email'];
                 } else {
                     $nextEmail = 'last';

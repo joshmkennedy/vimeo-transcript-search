@@ -24,7 +24,7 @@ type AppProps = {
   items: ClipListMetaItem[];
   previewList: Record<string, Omit<AiVimeoResult, keyof ClipListMetaItem>>;
   resources: AimClipListResources[];
-  weeksInfo: Record<number, WeekInfoType>;
+  weeksInfo: Record<string, WeekInfoType>;
   formId: number;
   category: number;
   clipListCategories: Record<number, string>;

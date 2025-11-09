@@ -60,15 +60,15 @@ class ClipListEmail {
     }
 
     public function getWeekConfig($weekIndex):array {
-        $emailIntro = $this->meta->getEmailInfo($this->clipListId, 'week_' . $weekIndex . '_videos_for_this_week')['textContent'];
+        $emailIntro = $this->meta->getEmailInfo($this->clipListId,  $weekIndex . '_videos_for_this_week')['textContent'];
         $items = $this->meta->getItems($this->clipListId);
         $resources = $this->meta->getResources($this->clipListId);
 
         $wkVideos = collect($items)
-            ->filter(fn($item) => isset($item['week_index']) && (string)$item['week_index'] == $weekIndex)
+            ->filter(fn($item) => isset($item['week_index']) && "week_" . (string)$item['week_index'] == $weekIndex)
             ->toArray();
         $wkResources = collect($resources)
-            ->filter(fn($item) => isset($item['week_index']) && (string)$item['week_index'] == $weekIndex)
+            ->filter(fn($item) => isset($item['week_index']) && "week_" . (string)$item['week_index'] == $weekIndex)
             ->toArray();
 
         $videos = collect(VimeoInfoVideoList::getVideoInfoList($wkVideos))

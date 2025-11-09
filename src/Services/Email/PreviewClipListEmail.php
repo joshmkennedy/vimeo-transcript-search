@@ -49,7 +49,8 @@ class PreviewClipListEmail {
 
     private function prepareConfig($config, $emailAddress) {
         $videos = $config['videos'];
-        $createLink = fn($clipid) => get_site_url() . "/aim-learning-path/{$this->config['clipListId']}/{$this->config['week_index']}/?clip_id=$clipid";
+        $weekIndexNum = str_replace('week_', '', $this->config['week_index']);
+        $createLink = fn($clipid) => get_site_url() . "/aim-learning-path/{$this->config['clipListId']}/$weekIndexNum/?clip_id=$clipid";
         $mainVideo = ClipListEmail::mainVideo($videos, $createLink);
         $sideVideos = ClipListEmail::sideVideos($videos, $createLink);
         $links = ClipListEmail::resourceLinks($config['resources']);

@@ -26,7 +26,7 @@ export type AppStoreT = {
   postId: number | string;
   items: ClipListMetaItem[];
   resources: AimClipListResources[];
-  weeksInfo: Record<number, WeekInfoType>;
+  weeksInfo: Record<string, WeekInfoType>;
 	formId: number;
 	category: number;
 };
@@ -111,7 +111,7 @@ export type WeekInfoType = {
   }[];
 }
 
-export type WeekInfoRecords = Record<number, WeekInfoType>;
+export type WeekInfoRecords = Record<string, WeekInfoType>;
 
 
 export const WeekInfo = atom<WeekInfoRecords, [{ data: WeekInfoRecords, fromDb?: boolean }], void>(

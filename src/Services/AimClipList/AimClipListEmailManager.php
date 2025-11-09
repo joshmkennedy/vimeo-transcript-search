@@ -108,7 +108,7 @@ class AimClipListEmailManager {
     public function sendEmail(int $listId, string $emailName, $emailAddress, $user) {
         try {
             $userId = $user['ID'];
-            $weekIndex = $this->meta->getWeekIdx($emailName);
+            $weekIndex = $this->meta->getWeekSlug($emailName);
             $clipLisEmail = new ClipListEmail($listId, $weekIndex);
             $emailConfig = $clipLisEmail->generateClipListEmail($emailAddress);
             // send the email

@@ -71,10 +71,11 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
 
   const [emailConfig, setEmailConfig] = useState<any>(undefined);
 
-  async function previewEmail(weekIndex: number) {
-    const videosInWeek = videosByWeek[weekIndex]!;
+  async function previewEmail(weekIndex: string) {
+    const weekIndexNum = parseInt(weekIndex.replace('week_', ''));
+    const videosInWeek = videosByWeek[weekIndexNum]!;
     const emailIntro = weekInfo[weekIndex]?.emails[0]?.textContent ?? ""
-    const email = await generateEmailMarkup(videosInWeek, resourcesByWeek[weekIndex] ?? [], emailIntro, weekIndex.toString());
+    const email = await generateEmailMarkup(videosInWeek, resourcesByWeek[weekIndexNum] ?? [], emailIntro, weekIndex);
     if (!email) {
       toast.error("No email markup found");
       return;
@@ -107,30 +108,30 @@ export function AimEmailListEditor({ activeWeek, setActiveWeek, videos }: { acti
     <AddAiSummaryButton weeks={Object.keys(weekInfo).map(Number)} btnText={`Fill in missing Email Intros`} overwrite={false} />
     <Accordion type="single" collapsible onValueChange={handleAccordionValueChange} value={activeWeek.toString()}>
       {WEEKS.map((week, i) => {
-        const weekIndex = i + 1;
-        return <AccordionItem key={i} value={weekIndex.toString()}>
+        const weekIndexNum = i + 1;
+        return <AccordionItem key={i} value={weekIndexNum.toString()}>
           <AccordionTrigger className="no-underline w-full " >
             <div className="flex flex-row items-center gap-2 ">
               {week}
-              <Badge className="ml-2" variant="secondary">Vidoes {videosByWeek[weekIndex]?.length ?? 0}</Badge>
-              <Badge className="ml-2" variant="secondary">Resources {resourcesByWeek[weekIndex]?.length ?? 0}</Badge>
+              <Badge className="ml-2" variant="secondary">Vidoes {videosByWeek[weekIndexNum]?.length ?? 0}</Badge>
+              <Badge className="ml-2" variant="secondary">Resources {resourcesByWeek[weekIndexNum]?.length ?? 0}</Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-4">
             <header className="flex flex-row items-center gap-2 justify-between">
               <p className="text-lg font-bold">Week {i + 1}</p>
 
-              <PreviewEmailContent onOpen={() => previewEmail(i + 1)} email={emailConfig} />
+              <PreviewEmailContent onOpen={() => previewEmail(`week_${i + 1}`)} email={emailConfig} />
 
-              <AddAiSummaryButton weeks={[weekIndex]} btnText={`Add Ai Summary to Week ${weekIndex}`} overwrite={true} />
+              <AddAiSummaryButton weeks={[weekIndexNum]} btnText={`Add Ai Summary to Week ${weekIndexNum}`} overwrite={true} />
             </header>
 
-            <WeekInfoEditor weekIndex={weekIndex} />
+            <WeekInfoEditor weekIndexNum={weekIndexNum} />
 
-            {videosByWeek[weekIndex] && videosByWeek[weekIndex].length > 0 ? (
+            {videosByWeek[weekIndexNum] && videosByWeek[weekIndexNum].length > 0 ? (
               <>
-                <VideosInWeek weekIndex={weekIndex} videos={videosByWeek[weekIndex]} />
-                <ResourcesInWeek weekIndex={weekIndex} resources={resourcesByWeek[weekIndex] ?? []} />
+                <VideosInWeek weekIndex={weekIndexNum} videos={videosByWeek[weekIndexNum]} />
+                <ResourcesInWeek weekIndex={weekIndexNum} resources={resourcesByWeek[weekIndexNum] ?? []} />
               </>
             ) : null}
           </AccordionContent>
@@ -348,29 +349,39 @@ const defaultWeekInfo = (weekIndex: number) => ({
   ],
 });
 
-export function WeekInfoEditor({ weekIndex }: { weekIndex: number }) {
+export function WeekInfoEditor({  weekIndexNum }: { weekIndexNum: number }) {
   const [weekInfo, setWeekInfo] = useAtom(WeekInfo);
+  const weekIndexSlug = `week_${weekIndexNum}`;
 
-  const week = weekInfo[weekIndex] ?? defaultWeekInfo(weekIndex);
+  const week = useMemo(()=>weekInfo[weekIndexSlug] ?? defaultWeekInfo(weekIndexNum), [weekIndexNum, weekInfo]);
 
   const [localEmailInfo, setLocalEmailInfo] = useState(week.emails[0]!);
 
-  function saveWeekInfo(weekIndex: number, updatedInfo: Partial<WeekInfoType['emails'][number]>) {
+  const setLocalEmailInfoCB = useCallback((email: Partial<WeekInfoType['emails'][number]>) => {
+    setLocalEmailInfo({ ...localEmailInfo, ...email });
+  }, [localEmailInfo]);
+
+  useEffect(() => {
+    console.log("setting local email info, ", week.emails[0]!);
+    setLocalEmailInfoCB(week.emails[0]!);
+  }, [week]);
+
+  function saveWeekInfo(weekIndexSlug: string, updatedInfo: Partial<WeekInfoType['emails'][number]>) {
     const copy = { ...weekInfo };
-    copy[weekIndex] = { ...week, emails: [{ ...week.emails[0], ...updatedInfo }] } as WeekInfoType;
+    copy[weekIndexSlug] = { ...week, emails: [{ ...week.emails[0], ...updatedInfo }] } as WeekInfoType;
     setWeekInfo({
       data: copy,
     })
   }
   return <form
     className="flex flex-col gap-2 p-2 bg-neutral-50/20 rounded-md "
-    onSubmit={(e) => { e.preventDefault(); saveWeekInfo(weekIndex, localEmailInfo); }}
+    onSubmit={(e) => { e.preventDefault(); saveWeekInfo(weekIndexSlug, localEmailInfo); }}
   >
     <div className="flex flex-row items-center gap-2 justify-end">
       <Button type="submit" variant="secondary">Save Intro</Button>
     </div>
     <FormInput>
-      <Label className="text-sm font-bold">Week {weekIndex}'s Introduction to the Email</Label>
+      <Label className="text-sm font-bold">Week {weekIndexNum}'s Introduction to the Email</Label>
       <textarea
         placeholder="Week Intro"
         className="min-h-[200px] rounded-sm w-full md:text-lg border-1 border-neutral-200 focus-visible:border-transparent h-auto font-medium focus-visible:ring-4 focus-visible:ring-blue-200/35"
@@ -391,9 +402,10 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
   const [isOpen, setIsOpen] = useState(false);
   const [currentState, setCurrentState] = useState<"confirm" | "progress" | "finished">("confirm");
 
-  const weekHasIntro = (weekIndex: number) => {
-    const content = weekInfo[weekIndex]?.emails[0]?.textContent;
-    return (content?.length && content !== defaultWeekInfo(weekIndex).emails[0]!.textContent);
+  const weekHasIntro = (weekIndexNum: number) => {
+    const weekIndexSlug = `week_${weekIndexNum}`;
+    const content = weekInfo[weekIndexSlug]?.emails[0]?.textContent;
+    return (content?.length && content !== defaultWeekInfo(weekIndexNum).emails[0]!.textContent);
   }
 
   const {
@@ -450,7 +462,10 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
 
   const updateWithAiResults = useCallback(({ videos, emails }: { videos: AiVideo[], emails: AiEmail[] }) => {
     console.log("before update", weekInfo);
-
+    const weekIndexNum = parseInt(emails[0]?.weekIndex?.split('_')?.[1] ?? '0')
+    if(weekIndexNum === 0){
+      throw new Error("weekIndex is 0, das bad yo!");
+    }
     const clipIds = videos.map(v => v.clipId);
     const newItems = items.map(item => {
       if (clipIds.includes(item.clip_id)) {
@@ -462,12 +477,22 @@ function AddAiSummaryButton({ weeks, btnText, overwrite }: { weeks: number[], bt
     setItems({
       data: newItems,
     })
+     
+    console.log("UPDATING WEEK INFO", `week_${weekIndexNum}`, weekInfo);
 
-    const newWeekInfo = Object.entries(weekInfo).reduce((newWeekInfo, [index, weekInfoItem]) => {
-      if (weeks.includes(Number(index))) {
-        weekInfoItem.emails[0]!.textContent = emails.find(e => e.weekIndex === `week_${index}`)?.summary ?? "";
+    if(!(weekIndexNum in weekInfo)){
+      weekInfo[`week_${weekIndexNum}`] = defaultWeekInfo(weekIndexNum);
+    }
+
+    const newWeekInfo = Object.entries(weekInfo).reduce((newWeekInfo, [weekIndexSlug, weekInfoItem]) => {
+      const weekIndexNum = parseInt(weekIndexSlug.replace('week_', ''));
+      if (weeks.includes(Number(weekIndexNum))) {
+				const email = emails.find(e => e.weekIndex === weekIndexSlug);
+				if (email && email.summary?.length) { 
+					weekInfoItem.emails[0]!.textContent = email.summary;
+				}
       }
-      newWeekInfo[Number(index)] = weekInfoItem;
+      newWeekInfo[weekIndexSlug] = weekInfoItem;
       return newWeekInfo;
     }, {} as WeekInfoRecords)
 
